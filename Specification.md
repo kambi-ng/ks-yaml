@@ -19,7 +19,8 @@ Keys must not be surrounded by any quotation mark.
 #### Object Value
 
 Object value must be surrounded by curly brackets `{}`.
-Multiple values in an object shall be sepparated by commas `,`.
+Multiple key-value-pair in an object must be sepparated by commas `,`.
+The last key-value-pair in an object must not have any trailing comma `,`.
 
 #### String Value
 
@@ -47,7 +48,8 @@ top level: {
     key1: "value1",
     array: ["a", "b", "c", 1.425]
     string: "this is string",
-    number : 3.14159
+    number : 3.14159,
+    boolean: true
     }
 
 array top: [
