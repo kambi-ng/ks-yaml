@@ -16,8 +16,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	f, _ := parser.ParseBytes(b, 0)
-	// f, _ := parser.ParseBytes(b, parser.ParseComments)
+	// f, _ := parser.ParseBytes(b, 0)
+	f, _ := parser.ParseBytes(b, parser.ParseComments)
 	var s string
 	for _, v := range f.Docs {
 		n := v.Body
@@ -27,11 +27,16 @@ func main() {
 			s += unmarshal(n, 0)
 		}
 	}
+	// fmt.Println(f)
 	fmt.Println(s)
 }
 
 func unmarshal(data *ast.MappingNode, depth int) string {
 	var s string
+	c := data.GetComment()
+	if c != nil {
+		s += fmt.Sprintf("%s\n", c)
+	}
 	for _, v := range data.Values {
 		s += unmarshalMappingValue(v, depth)
 	}
@@ -42,6 +47,10 @@ func unmarshalMappingValue(data *ast.MappingValueNode, depth int) string {
 	var s string
 	pre := strings.Repeat("  ", depth)
 	n := data.Value
+	c := data.GetComment()
+	if c != nil {
+		s += fmt.Sprintf("%s\n", c)
+	}
 	switch n.(type) {
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
 		s += fmt.Sprintf("%s%s: %s", pre, data.Key, n)
@@ -50,8 +59,13 @@ func unmarshalMappingValue(data *ast.MappingValueNode, depth int) string {
 		n.Token.Type = token.DoubleQuoteType
 		s += fmt.Sprintf("%s%s: %s", pre, data.Key, n)
 	case *ast.MappingNode:
+		k := data.Key.(*ast.StringNode).Value
+		s += fmt.Sprintf("%s%s: {", pre, k)
+		c := data.Key.GetComment()
+		if c != nil {
+			s += fmt.Sprintf(" %s\n", c)
+		}
 		n := n.(*ast.MappingNode)
-		s += fmt.Sprintf("%s%s: {\n", pre, data.Key)
 		s += unmarshal(n, depth+1)
 		s += fmt.Sprintf("%s}", pre)
 	case *ast.SequenceNode:
