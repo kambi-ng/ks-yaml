@@ -33,9 +33,10 @@ func main() {
 
 func unmarshal(data *ast.MappingNode, depth int) string {
 	var s string
+	pre := strings.Repeat("  ", depth)
 	c := data.GetComment()
 	if c != nil {
-		s += fmt.Sprintf("%s\n", c)
+		s += fmt.Sprintf("%s%s\n", pre, c)
 	}
 	for _, v := range data.Values {
 		s += unmarshalMappingValue(v, depth)
@@ -49,7 +50,7 @@ func unmarshalMappingValue(data *ast.MappingValueNode, depth int) string {
 	n := data.Value
 	c := data.GetComment()
 	if c != nil {
-		s += fmt.Sprintf("%s\n", c)
+		s += fmt.Sprintf("%s%s\n", pre, c)
 	}
 	switch n.(type) {
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
