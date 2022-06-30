@@ -43,6 +43,9 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 		case *ast.MappingValueNode:
 			mvnode := docB.(*ast.MappingValueNode)
 			m.unmarshallMappingValue(mvnode, 0)
+
+		default:
+			fmt.Fprintf(&m.sb,"[x] %T", d)
 		}
 	}
 
@@ -54,8 +57,7 @@ func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
 
 	comm := data.GetComment()
 	if comm != nil {
-		s := fmt.Sprintf("%s%s\n", pre, comm)
-		m.sb.WriteString(s)
+		fmt.Fprintf(&m.sb, "%s%s\n", pre, comm)
 	}
 
 	for _, val := range data.Values {
@@ -68,8 +70,7 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 
 	comm := data.GetComment()
 	if data.GetComment() != nil {
-		s := fmt.Sprintf("%s%s\n", pre, comm)
-		m.sb.WriteString(s)
+		fmt.Fprintf(&m.sb,"%s%s\n", pre, comm)
 	}
 
 	key := data.Key
@@ -81,7 +82,12 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
 		commAfter = m.unmarshallInlineNode(key, val, depth)
 	case *ast.MappingNode:
-		fmt.Fprintf(&m.sb, "%s%s: {\n", pre, key)
+		fmt.Fprintf(&m.sb, "%s%s: {", pre, key.GetToken().Value)
+		comm := key.GetComment()
+		if comm != nil {
+			fmt.Fprintf(&m.sb," %s", comm)
+		}
+		m.sb.WriteString("\n")
 		m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
 		m.sb.WriteString(pre + "}")
 	case *ast.MappingValueNode:
@@ -93,8 +99,7 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 		m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
 		m.sb.WriteString(pre + "]")
 	default:
-		s := fmt.Sprintf("[x] %s %s: %T", pre, key, val)
-		m.sb.WriteString(s)
+		fmt.Fprintf(&m.sb,"[x] %s %s: %T", pre, key, val)
 	}
 
 	if depth > 0 {
@@ -151,7 +156,6 @@ func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int)
 			m.sb.WriteString(pre + "[\n")
 			m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
 			m.sb.WriteString(pre + "]")
-
 		}
 		if i != len(data.Values)-1 {
 			m.sb.WriteString(",")
