@@ -17,11 +17,7 @@
 
 
 <!-- PROJECT LOGO -->
-<br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
 
 <h3 align="center">KS-YAML (Kambing-Style YAML)</h3>
 
@@ -29,8 +25,7 @@
     A better way to write human-readable, developer-friendly YAML
     <br />
     <br />
-    <br />
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
+    <a href="https://github.com/bukan-kambing/ks-yaml/blob/master/SPECIFICATION.md">View Specification</a>
   </p>
 </div>
 
@@ -44,10 +39,6 @@ However, this reliance on indentation oftentimes lead to problems due to parsing
 The KS-YAML formatting rules aims to solve this problem by leveraging the fact that YAML is designed as a superset of the JSON standard to create a more sensible way of writing YAML files.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- SPECIFICATION -->
-## The KS-YAML Specification
-Lorem ipsum dolor sit amet.
 
 <!-- LICENSE -->
 ## License
