@@ -26,14 +26,14 @@ Keys must not be surrounded by any quotation mark.
 
 # Correct
 key2: "This is correct!"
-"key-2": "This is correct!"
+key-2: "This is correct!"
 
-# 
+# Correct
 10: "This is correct when you want the key to be implicitly parsed as a 'fixnum'"
 "10": "This is correct when you want to force a key to be parsed as a 'string' instead of a 'fixnum'"
 ```
 
-**Why:** We avoid the usage of quotation marks when defining keys that have a combination of letters and/or numbers because it will be automatically handled by a standard-complying parser. In comparison to JSON this makes it easier for developers to define a key-value pair by allowing them to omit quotation marks in most use-cases, similar to how one would define an object in JavaScript.
+**Why:** We avoid the usage of quotation marks when defining keys that have a combination of letters and/or numbers because it will be automatically handled by a standard-complying parser (and also less tedious). In comparison to JSON this makes it easier for developers to define a key-value pair by allowing them to omit quotation marks in most use-cases, similar to how one would define an object in JavaScript.
 
 ### Values
 
