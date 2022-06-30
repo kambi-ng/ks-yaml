@@ -36,6 +36,7 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 		docB := d.Body
 
 		switch docB.(type) {
+
 		case *ast.MappingNode:
 			mnode := docB.(*ast.MappingNode)
 			m.unmarshallMappingNode(mnode, 0)
@@ -44,8 +45,14 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 			mvnode := docB.(*ast.MappingValueNode)
 			m.unmarshallMappingValue(mvnode, 0)
 
+		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
+			commAfter := m.unmarshallInlineNode(nil, docB, 0)
+			if commAfter != "" {
+				fmt.Fprintf(&m.sb, " #%s", commAfter)
+			}
+
 		default:
-			fmt.Fprintf(&m.sb,"[x] %T", d)
+			fmt.Fprintf(&m.sb,"[x] its  %T %s", docB, docB)
 		}
 	}
 
