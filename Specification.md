@@ -37,32 +37,131 @@ key2: "This is correct!"
 
 ### Values
 
-#### Object Value
+#### Object and Array values
 
 Objects other than the top-level YAML object must be surrounded by curly brackets `{}`.
+Arrays must be surrounded by square brackets `[]`. Elements of arrays shall be separated by commas `,`.
 Multiple key-value-pair in an object must be separated by commas `,`.
 The last key-value-pair in an object must not have any trailing comma `,`.
 
-**Why:** We define non-top level objects using a JS-like writing style to improve readability for multiple nested objects. We believe this solves a major problem with YAML-readability in exchange for just a little more effort on the developer's end when writing YAML files.
+```yaml
+# Standard way of writing YAML.
+# This encourages inconsistent usage of quotations and indentation, 
+# leading to headaches when a typo causes parsing issues.
+
+version: "3.8"
+services:
+    db:
+        container_name: exampleproject-db
+        image: postgres:13.3-alpine
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        restart: always
+        environment:
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_NAME}
+        networks:
+            - exampleproject
+        ports:
+            - "${DB_PORT}:5432"
+            
+    server:
+        container_name: exampleproject-server
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "${SERVER_PORT}:${SERVER_PORT}"
+        depends_on:
+            - db
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+        networks:
+            - exampleproject
+        commands:
+            - "/app/main"
+
+volumes:
+    db-data:
+        driver: local
+
+networks:
+    exampleproject:
+        driver: bridge
+```
+
+```yaml
+# KS-YAML compliant formatting
+# Although more verbose, this prevents alot of problems stemming from usage of indents in a YAML file.
+version: "3.8"
+services: {
+    db: {
+        container_name: "exampleproject-db",
+        image: "postgres:13.3-alpine",
+        volumes: ["db-data:/var/lib/postgresql/data"],
+        restart: "always",
+        environment: {
+            POSTGRES_USER: "${DB_USER}",
+            POSTGRES_PASSWORD: "${DB_PASSWORD}",
+            POSTGRES_DB: "${DB_NAME}"
+        },
+        networks: ["exampleproject"],
+        ports: ["${DB_PORT}:5432"]
+    },
+    server: {
+        container_name: "exampleproject-server",
+        build: {
+            context: ".",
+            dockerfile: "Dockerfile"
+        },
+        ports: ["${SERVER_PORT}:${SERVER_PORT}"],
+        depends_on: ["db"],
+        environment: [
+            "DB_HOST=db",
+            "DB_PORT=5432"
+        ],
+        networks: ["exampleproject"],
+        commands: ["/app/main"]
+    }
+}
+
+volumes: {
+    db-data: {
+        driver: "local"
+    }
+}
+
+networks: {
+    exampleproject: {
+        driver: "bridge"
+    }
+}
+```
+        
+**Why:** We define non-top level objects using a JS-like writing style to improve readability for multiple nested objects. We believe this solves a major problem with YAML-readability in exchange for just a little more effort on the developer's end when writing YAML files. Arrays are also defined in a JS-like syntax to prevent confusion surrounding the use of YAML's native `- <value>` syntax.
 
 #### String Value
 
 String value must be surrounded by double quotation mark `""`.
 
+**Why:** Strings must be explicitly defined using quotation marks to prevent confusion when trying to differentiate between types of variables.
+
 #### Number Value
 
 Number value must not be surounded by quotation mark `""` nor any identifier.
 
-#### Array Values
-
-Arrays must be surrounded by square brackets `[]`. Elements of arrays shall be sepparated by commas `,`.
+**Why:** Numbers are automatically parsed into integers by standard-compliant parsers, hence we explicitly differentiate between a number definition and a string definition by omitting the quotation marks.
 
 #### Boolean Value
 
 Boolean value must not be surrounded by quotation mark `""` nor any indentifier.
 
+**Why:** This has the same reasoning as with the formatting rules for a number primitive. It prevents confusions between string values such as `"true"` with an actual boolean value `true`
+
 ### Indentation
-Kambing style yaml doesn't enforce any specific indentation.
+Since KS-YAML does not rely on indentations due to using JSON-style syntax, we do not enforce any kind of indentation. A KS-YAML compliant formatter should give developers an option to change tab sizing either by modifying a global config or a project-specific config.
 
 ## Example
 
