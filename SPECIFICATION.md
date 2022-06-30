@@ -100,15 +100,21 @@ services: {
     db: {
         container_name: "exampleproject-db",
         image: "postgres:13.3-alpine",
-        volumes: ["db-data:/var/lib/postgresql/data"],
+        volumes: [
+            "db-data:/var/lib/postgresql/data"
+        ],
         restart: "always",
         environment: {
             POSTGRES_USER: "${DB_USER}",
             POSTGRES_PASSWORD: "${DB_PASSWORD}",
             POSTGRES_DB: "${DB_NAME}"
         },
-        networks: ["exampleproject"],
-        ports: ["${DB_PORT}:5432"]
+        networks: [
+            "exampleproject"
+        ],
+        ports: [
+            "${DB_PORT}:5432"
+        ]
     },
     server: {
         container_name: "exampleproject-server",
@@ -116,14 +122,22 @@ services: {
             context: ".",
             dockerfile: "Dockerfile"
         },
-        ports: ["${SERVER_PORT}:${SERVER_PORT}"],
-        depends_on: ["db"],
+        ports: [
+            "${SERVER_PORT}:${SERVER_PORT}"
+        ],
+        depends_on: [
+            "db"
+        ],
         environment: [
             "DB_HOST=db",
             "DB_PORT=5432"
         ],
-        networks: ["exampleproject"],
-        commands: ["/app/main"]
+        networks: [
+            "exampleproject"
+        ],
+        commands: [
+            "/app/main"
+        ]
     }
 }
 
