@@ -54,7 +54,7 @@ top level: {
 
 array top: [
     {
-    key1 : "value1"
+    key1: "value1"
     },
     {
     key2: "value2"

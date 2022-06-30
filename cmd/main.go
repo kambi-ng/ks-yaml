@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml/ast"
-	"github.com/goccy/go-yaml/parser"
 	"github.com/goccy/go-yaml/token"
+
+	ksyaml "github.com/bukan-kambing/ks-yaml/pkg"
 )
 
 func main() {
@@ -16,19 +17,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	c := ksyaml.NewConverter()
+
+	ms := string(b)
+	os, _ := c.Convert(ms)
+	fmt.Println(os)
+	return
 	// f, _ := parser.ParseBytes(b, 0)
-	f, _ := parser.ParseBytes(b, parser.ParseComments)
-	var s string
-	for _, v := range f.Docs {
-		n := v.Body
-		switch n.(type) {
-		case *ast.MappingNode:
-			n := n.(*ast.MappingNode)
-			s += unmarshal(n, 0)
-		}
-	}
-	// fmt.Println(f)
-	fmt.Println(s)
+	// f, _ := parser.Pa// rseBytes(b, parser.ParseComments)
+	// var s string
+	// for _, v := range f.Docs {
+	// 	n := v.Body
+	// 	switch n.(type) {
+	// 	case *ast.MappingNode:
+	// 		n := n.(*ast.MappingNode)
+	// 		s += unmarshal(n, 0)
+	// 	}
+	// }
+	// // fmt.Println(f)
+	// fmt.Println(s)
 }
 
 func unmarshal(data *ast.MappingNode, depth int) string {

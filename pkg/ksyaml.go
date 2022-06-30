@@ -35,6 +35,9 @@ func (c *Converter) Convert(in string) (string, error) {
 	if c.withTab {
 		s = "\t"
 	}
+	if c.indentation == 0 {
+		c.indentation = 1
+	}
     indentString := strings.Repeat(s, c.indentation)
 
 	m := newUnmarshaller(indentString)

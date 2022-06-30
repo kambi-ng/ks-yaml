@@ -40,6 +40,10 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 		case *ast.MappingNode:
 			mnode := docB.(*ast.MappingNode)
 			m.unmarshallMappingNode(mnode, 0)
+
+		case *ast.MappingValueNode:
+			mvnode := docB.(*ast.MappingValueNode)
+			m.unmarshallMappingValue(mvnode, 0)
 		}
 	}
 
@@ -51,7 +55,7 @@ func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
 
 	comm := data.GetComment()
 	if comm != nil {
-		s := fmt.Sprintf("%s %s\n", pre, comm)
+		s := fmt.Sprintf("%s%s\n", pre, comm)
 		m.sb.WriteString(s)
 	}
 
@@ -65,7 +69,7 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 
 	comm := data.GetComment()
 	if data.GetComment() != nil {
-		s := fmt.Sprintf("%s %s\n", pre, comm)
+		s := fmt.Sprintf("%s%s\n", pre, comm)
 		m.sb.WriteString(s)
 	}
 
@@ -74,32 +78,33 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 
 	switch val.(type) {
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
-		s := fmt.Sprintf("%s %s: %s\n", pre, key, val)
+		s := fmt.Sprintf("%s%s: %s", pre, key, val)
 		m.sb.WriteString(s)
 	case *ast.StringNode:
 		val := val.(*ast.StringNode)
 		val.Token.Type = token.DoubleQuoteType
-		s := fmt.Sprintf("%s %s: %s\n", pre, key, val)
-		m.sb.WriteString(s)
+		fmt.Fprintf(&m.sb, "%s%s: %s", pre, key, val)
 	case *ast.MappingNode:
-		m.sb.WriteString(pre + "{\n")
-		m.sb.WriteString(fmt.Sprintf("%s %s:\n", pre, key))
+		fmt.Fprintf(&m.sb, "%s%s: {\n", pre, key)
 		m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
-		m.sb.WriteString(pre + "}\n")
+		m.sb.WriteString(pre + "}")
 	case *ast.MappingValueNode:
-		m.sb.WriteString(pre + "{\n")
-		m.sb.WriteString(fmt.Sprintf("%s %s:\n", pre, key))
+		fmt.Fprintf(&m.sb, "%s%s: {\n", pre, key)
 		m.unmarshallMappingValue(val.(*ast.MappingValueNode), depth+1)
-		m.sb.WriteString(pre + "}\n")
+		m.sb.WriteString(pre + "}")
 	case *ast.SequenceNode:
-		m.sb.WriteString(pre + "[\n")
-		m.sb.WriteString(fmt.Sprintf("%s %s:\n", pre, key))
+		fmt.Fprintf(&m.sb, "%s%s: [\n", pre, key)
 		m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
-		m.sb.WriteString(pre + "]\n")
+		m.sb.WriteString(pre + "]")
 	default:
-		s := fmt.Sprintf("[x] %s %s: %T\n", pre, key, val)
+		s := fmt.Sprintf("[x] %s %s: %T", pre, key, val)
 		m.sb.WriteString(s)
 	}
+
+	if depth > 0 {
+		m.sb.WriteString(",")
+	}
+	m.sb.WriteString("\n")
 }
 
 func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int) {
@@ -107,32 +112,29 @@ func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int)
 
 	comm := data.GetComment()
 	if comm != nil {
-		s := fmt.Sprintf("%s %s\n", pre, comm)
-		m.sb.WriteString(s)
+		fmt.Fprintf(&m.sb, "%s%s\n", pre, comm)
 	}
 
 	for i, val := range data.Values {
 		switch val.(type) {
 		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
-			s := fmt.Sprintf("%s%s\n", pre, val)
-			m.sb.WriteString(s)
+			fmt.Fprintf(&m.sb, "%s%s", pre, val)
 		case *ast.StringNode:
 			val := val.(*ast.StringNode)
 			val.Token.Type = token.DoubleQuoteType
-			s := fmt.Sprintf("%s%s\n", pre, val)
-			m.sb.WriteString(s)
+			fmt.Fprintf(&m.sb, "%s%s", pre, val)
 		case *ast.MappingNode:
 			m.sb.WriteString(pre + "{\n")
 			m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
-			m.sb.WriteString(pre + "}\n")
+			m.sb.WriteString(pre + "}")
 		case *ast.MappingValueNode:
 			m.sb.WriteString(pre + "{\n")
-			m.unmarshallMappingValue(val.(*ast.MappingValueNode), depth+1)
-			m.sb.WriteString(pre + "}\n")
+			m.unmarshallMappingValue(val.(*ast.MappingValueNode), depth)
+			m.sb.WriteString(pre + "}")
 		case *ast.SequenceNode:
 			m.sb.WriteString(pre + "[\n")
 			m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
-			m.sb.WriteString(pre + "]\n")
+			m.sb.WriteString(pre + "]")
 
 		}
 		if i != len(data.Values)-1 {
