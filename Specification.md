@@ -1,26 +1,49 @@
-# Kambing style yaml specification
+# Kambing Style YAML Specification
 
-Kambing style yaml is yaml specification that is mixed with json syntax for better readability. 
-This style is supported by the yaml standard and can therefore be read by any complient yaml parser.
+Kambing Style YAML is a YAML formatting specification that leverages YAML's support for JSON syntax to improve readability. 
+This style is supported by the YAML standard and can therefore be read by any YAML-compliant parsers.
 
 ## Syntax
 
 ### Top level
 
 Top level must not be surrounded by neither curly `{}` nor square `[]` brackets.
-Multiple key value pair on the top level must not be sepparated by commas.
+Multiple key value pair on the top level must not be separated by commas.
+
+```yaml
+top1: "Hello"
+top2: "World"
+top3: "We love goats"
+```
+**Why:** We allow top-level definitions using the standard YAML syntax to create an implicit rule for defining major sections in a YAML configuration. JSON-style objects are reserved for object definitions within a specific "section", while the YAML syntax is ONLY used for top level declarations. We believe this leads to improved semantics within a YAML document.
 
 ### Keys
 
 Keys must not be surrounded by any quotation mark.
+```yaml
+# Wrong
+"key1": "This is wrong."
+
+# Correct
+key2: "This is correct!"
+"key-2": "This is correct!"
+
+# 
+10: "This is correct when you want the key to be implicitly parsed as a 'fixnum'"
+"10": "This is correct when you want to force a key to be parsed as a 'string' instead of a 'fixnum'"
+```
+
+**Why:** We avoid the usage of quotation marks when defining keys that have a combination of letters and/or numbers because it will be automatically handled by a standard-complying parser. In comparison to JSON this makes it easier for developers to define a key-value pair by allowing them to omit quotation marks in most use-cases, similar to how one would define an object in JavaScript.
 
 ### Values
 
 #### Object Value
 
-Object value must be surrounded by curly brackets `{}`.
-Multiple key-value-pair in an object must be sepparated by commas `,`.
+Objects other than the top-level YAML object must be surrounded by curly brackets `{}`.
+Multiple key-value-pair in an object must be separated by commas `,`.
 The last key-value-pair in an object must not have any trailing comma `,`.
+
+**Why:** We define non-top level objects using a JS-like writing style to improve readability for multiple nested objects. We believe this solves a major problem with YAML-readability in exchange for just a little more effort on the developer's end when writing YAML files.
 
 #### String Value
 
