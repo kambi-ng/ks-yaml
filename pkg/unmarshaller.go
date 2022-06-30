@@ -3,7 +3,6 @@ package ksyaml
 import (
 	"github.com/goccy/go-yaml/ast"
 	"github.com/goccy/go-yaml/parser"
-	"github.com/goccy/go-yaml/token"
 
 	"fmt"
 	"strings"
@@ -76,14 +75,11 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 	key := data.Key
 	val := data.Value
 
+	commAfter := ""
+
 	switch val.(type) {
-	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
-		s := fmt.Sprintf("%s%s: %s", pre, key, val)
-		m.sb.WriteString(s)
-	case *ast.StringNode:
-		val := val.(*ast.StringNode)
-		val.Token.Type = token.DoubleQuoteType
-		fmt.Fprintf(&m.sb, "%s%s: %s", pre, key, val)
+	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
+		commAfter = m.unmarshallInlineNode(key, val, depth)
 	case *ast.MappingNode:
 		fmt.Fprintf(&m.sb, "%s%s: {\n", pre, key)
 		m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
@@ -104,7 +100,30 @@ func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth 
 	if depth > 0 {
 		m.sb.WriteString(",")
 	}
+	if commAfter != "" {
+		fmt.Fprintf(&m.sb, " #%s", commAfter)
+	}
 	m.sb.WriteString("\n")
+}
+
+func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) string {
+	pre := strings.Repeat(m.indentString, depth)
+
+	m.sb.WriteString(pre)
+	val := value.GetToken().Value
+	if key != nil {
+		fmt.Fprintf(&m.sb, "%s: ", key.GetToken().Value)
+	}
+	switch value.(type) {
+	case *ast.StringNode:
+		fmt.Fprintf(&m.sb, "\"%s\"", val)
+	default:
+		fmt.Fprintf(&m.sb, "%s", val)
+	}
+	if value.GetComment() != nil {
+		return value.GetComment().GetToken().Value
+	}
+	return ""
 }
 
 func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int) {
@@ -115,14 +134,11 @@ func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int)
 		fmt.Fprintf(&m.sb, "%s%s\n", pre, comm)
 	}
 
+	commAfter := ""
 	for i, val := range data.Values {
 		switch val.(type) {
-		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode:
-			fmt.Fprintf(&m.sb, "%s%s", pre, val)
-		case *ast.StringNode:
-			val := val.(*ast.StringNode)
-			val.Token.Type = token.DoubleQuoteType
-			fmt.Fprintf(&m.sb, "%s%s", pre, val)
+		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
+			commAfter = m.unmarshallInlineNode(nil, val, depth)
 		case *ast.MappingNode:
 			m.sb.WriteString(pre + "{\n")
 			m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
@@ -139,6 +155,9 @@ func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int)
 		}
 		if i != len(data.Values)-1 {
 			m.sb.WriteString(",")
+		}
+		if commAfter != "" {
+			fmt.Fprintf(&m.sb, " #%s", commAfter)
 		}
 		m.sb.WriteString("\n")
 	}
