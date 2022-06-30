@@ -15,12 +15,6 @@ func WithIndentation(indentation int) ConverterOption {
 	}
 }
 
-func WithTab() ConverterOption {
-	return func(c *Converter) {
-		c.withTab = true
-	}
-}
-
 func NewConverter(opts ...ConverterOption) *Converter {
 	c := &Converter{}
 	for _, opt := range opts {
@@ -32,9 +26,7 @@ func NewConverter(opts ...ConverterOption) *Converter {
 func (c *Converter) Convert(in string) (string, error) {
 
 	s := " "
-	if c.withTab {
-		s = "\t"
-	}
+
 	if c.indentation == 0 {
 		c.indentation = 1
 	}
@@ -43,4 +35,10 @@ func (c *Converter) Convert(in string) (string, error) {
 	m := newUnmarshaller(indentString)
 
 	return m.unmarshallString(in)
+}
+
+func Convert(in string) (string, error) {
+	return NewConverter(
+		WithIndentation(2),
+	).Convert(in)
 }
