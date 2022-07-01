@@ -2,13 +2,11 @@ module github.com/bukan-kambing/ks-yaml
 
 go 1.18
 
-require (
-	github.com/bukan-kambing/ks-yaml/pkg v0.0.0-00010101000000-000000000000
-	github.com/goccy/go-yaml v1.9.5
-)
+require github.com/bukan-kambing/ks-yaml/pkg v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/goccy/go-yaml v1.9.5 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
