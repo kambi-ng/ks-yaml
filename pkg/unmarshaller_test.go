@@ -122,14 +122,46 @@ func TestConvertMappingNode(t *testing.T) {
    hello:
     hello: 2`
 	expected_output := `map: {
- hello: {
   hello: {
-   a: 4,
-   hello: {
-    hello: 2,
-   },
+    hello: {
+      a: 4,
+      hello: {
+        hello: 2,
+      },
+    },
   },
- },
+}
+`
+
+	converter := NewConverter()
+	output_string, _ := converter.Convert(input_string)
+	if strings.Trim(output_string, "\n") != strings.Trim(expected_output, "\n") {
+		t.Errorf("expected \n%s\ngot\n%s", expected_output, output_string)
+	}
+}
+
+func TestConvertCommentWithTopLevelMapShouldReturnResultWithTopLevelComment(t *testing.T) {
+	input_string := `# HELLO
+test:
+  test:
+    test-1: 4
+    test:
+      test: 3
+
+hello:
+  world: test`
+
+	expected_output := `# HELLO
+test: {
+  test: {
+    test-1: 4,
+    test: {
+      test: 3,
+    },
+  },
+}
+hello: {
+  world: "test",
 }`
 
 	converter := NewConverter()

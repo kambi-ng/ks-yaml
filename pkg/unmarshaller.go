@@ -73,7 +73,11 @@ func (m *unmarshaller) unmarshallPrimitiveNode(value ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
-	m.printInlineComment(data, depth)
+	comment := data.GetComment()
+	if comment != nil {
+		fmt.Fprintf(&m.sb, "%s", comment)
+		m.sb.WriteString("\n")
+	}
 	for i, val := range data.Values {
 		m.unmarshallNode(val, depth)
 		if i != len(data.Values)-1 {
