@@ -70,7 +70,12 @@ func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
 		m.unmarshallNode(val, depth)
 
 		if i != len(data.Values)-1 {
-			fmt.Fprint(&m.sb, ",")
+			if depth != 0 {
+				fmt.Fprint(&m.sb, ",")
+			}
+		}
+		m.printInlineComment(val.Value, depth)
+		if i != len(data.Values)-1 {
 			fmt.Fprintln(&m.sb)
 		}
 	}
@@ -96,11 +101,10 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 	default:
 		m.unmarshallPrimitiveNode(value, depth)
 	}
+
 }
 
 func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int) {
-
-	pre := strings.Repeat(m.indentString, depth)
 	fmt.Fprintf(&m.sb, "[")
 	m.printInlineComment(node, depth)
 	m.sb.WriteString("\n")
@@ -115,7 +119,11 @@ func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int)
 			m.sb.WriteString("\n")
 		}
 	}
-	fmt.Fprintf(&m.sb, "\n%s]", pre)
+
+	fmt.Fprintf(&m.sb, "\n]")
+	if depth == 0 {
+		fmt.Fprintln(&m.sb)
+	}
 }
 
 func (m *unmarshaller) unmarshallNode(node ast.Node, depth int) {
@@ -129,5 +137,9 @@ func (m *unmarshaller) unmarshallNode(node ast.Node, depth int) {
 		m.unmarshallMappingNode(node.(*ast.MappingNode), depth)
 	case *ast.SequenceNode:
 		m.unmarshallSequenceNode(node.(*ast.SequenceNode), depth)
+	}
+
+	if depth == 0 {
+		m.printInlineComment(node, depth)
 	}
 }
