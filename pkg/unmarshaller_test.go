@@ -5,123 +5,122 @@ import (
 	"testing"
 )
 
-func TestConvertCommentNodeShouldReturnCommentString(t *testing.T) {
-	expected_output := `# Test`
+func BasicComment(t *testing.T) {
+	ex := `# Test`
 
-	input_string := `# Test`
+	in := `# Test`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertIntegerNodeShouldReturnInteger(t *testing.T) {
-	input_string := `1`
-	expected_output := `1`
+func IntegerNode(t *testing.T) {
+	in := `1`
+	ex := `1`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertQuotedStringNodeShouldReturnQuotedString(t *testing.T) {
-	input_string := `"test"`
-	expected_output := `"test"`
+func QuotedString(t *testing.T) {
+	in := `"test"`
+	ex := `"test"`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertUnquotedStringNodeShouldReturnQuotedString(t *testing.T) {
-	input_string := `test`
-	expected_output := `"test"`
+func UnquotedStringToQuoted(t *testing.T) {
+	in := `test`
+	ex := `"test"`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertBooleanNodeShouldReturnBoolean(t *testing.T) {
-	input_string := `true`
-	expected_output := `true`
+func BooleanNode(t *testing.T) {
+	in := `true`
+	ex := `true`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertFloatNodeShouldReturnFloat(t *testing.T) {
-	input_string := "3.1428"
-	expected_output := "3.1428"
+func FloatNode(t *testing.T) {
+	in := "3.1428"
+	ex := "3.1428"
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertTopLevelKeyPrimitivePairShouldReturnKeyPrimitive(t *testing.T) {
-	input_string := `key-1: a`
-	expected_output := `key-1: "a"`
+func RootKeyValuePair(t *testing.T) {
+	in := `key-1: a`
+	ex := `key-1: "a"`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
-func TestConvertTopLevelKeyPrimitivePairWithCommentShouldReturnStringWithComment(t *testing.T) {
-	input_string := `key-1: a # I AM A COMMENT`
-	expected_output := `key-1: "a" # I AM A COMMENT`
+func TopLevelComment(t *testing.T) {
+	in := `key-1: a # I AM A COMMENT`
+	ex := `key-1: "a" # I AM A COMMENT`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
+func TopLevelCommentOnPrimitiveNode(t *testing.T) {
+	in := `i am a string # i am a comment`
+	ex := `"i am a string" # i am a comment`
 
-func TestConvertPrimitiveNodeWithCommentShouldReturnResultWithInlineComment(t *testing.T) {
-	input_string := `i am a string # i am a comment`
-	expected_output := `"i am a string" # i am a comment`
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
-
-	if output_string != expected_output {
-		t.Errorf("expected %s, got %s", expected_output, output_string)
+	if out != ex {
+		t.Errorf("expected %s, got %s", ex, out)
 	}
 }
 
 func TestConvertMappingNode(t *testing.T) {
-	input_string := `map:
+	in := `map:
  hello:
   hello:
    a: 4
    hello:
     hello: 2`
-	expected_output := `map: {
+	ex := `map: {
   hello: {
     hello: {
       a: 4,
@@ -133,15 +132,14 @@ func TestConvertMappingNode(t *testing.T) {
 }
 `
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
-	if strings.Trim(output_string, "\n") != strings.Trim(expected_output, "\n") {
-		t.Errorf("expected \n%s\ngot\n%s", expected_output, output_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
+	if strings.Trim(out, "\n") != strings.Trim(ex, "\n") {
+		t.Errorf("expected \n%s\ngot\n%s", ex, out)
 	}
 }
-
-func TestConvertCommentWithTopLevelMapShouldReturnResultWithTopLevelComment(t *testing.T) {
-	input_string := `# HELLO
+func TopLevelCommentOnMap(t *testing.T) {
+	in := `# HELLO
 test:
   test:
     test-1: 4
@@ -151,7 +149,7 @@ test:
 hello:
   world: test`
 
-	expected_output := `# HELLO
+	ex := `# HELLO
 test: {
   test: {
     test-1: 4,
@@ -164,9 +162,9 @@ hello: {
   world: "test",
 }`
 
-	converter := NewConverter()
-	output_string, _ := converter.Convert(input_string)
-	if strings.Trim(output_string, "\n") != strings.Trim(expected_output, "\n") {
-		t.Errorf("expected \n%s\ngot\n%s", expected_output, output_string)
+	conv := NewConverter()
+	out, _ := conv.Convert(in)
+	if strings.Trim(out, "\n") != strings.Trim(ex, "\n") {
+		t.Errorf("expected \n%s\ngot\n%s", ex, out)
 	}
 }
