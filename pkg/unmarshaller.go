@@ -89,7 +89,7 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 		fmt.Fprintf(&m.sb, "%s: ", key.GetToken().Value)
 	}
 
-	switch value.(type) {
+	switch value := value.(type) {
 	case *ast.MappingNode, *ast.MappingValueNode:
 		m.sb.WriteString("{")
 		m.printInlineComment(key, depth)
@@ -97,7 +97,7 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 		m.unmarshallNode(value, depth+1)
 		fmt.Fprintf(&m.sb, "\n%s}", pre)
 	case *ast.SequenceNode:
-		m.unmarshallSequenceNode(value.(*ast.SequenceNode), depth)
+		m.unmarshallSequenceNode(value, depth)
 	default:
 		m.unmarshallPrimitiveNode(value, depth)
 	}
