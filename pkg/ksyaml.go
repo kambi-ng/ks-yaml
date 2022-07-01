@@ -47,7 +47,7 @@ func (c *Converter) Convert(in string) (string, error) {
 
 	m := newUnmarshaller(indentString)
 
-	return m.convertStringToBytes(InsertWhitespace(in))
+	return m.unmarshallString(InsertWhitespace(in))
 }
 
 func Convert(in string) (string, error) {

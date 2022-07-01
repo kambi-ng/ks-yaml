@@ -27,7 +27,7 @@ func (m *unmarshaller) printInlineComment(node ast.Node, depth int) {
 	}
 }
 
-func (m *unmarshaller) convertStringToBytes(in string) (string, error) {
+func (m *unmarshaller) unmarshallString(in string) (string, error) {
 	inBytes := []byte(in)
 	return m.unmarshallBytes(inBytes)
 }
@@ -51,17 +51,12 @@ func (m *unmarshaller) unmarshallPrimitiveNode(value ast.Node, depth int) {
 	val := value.GetToken().Value
 	switch value.(type) {
 	case *ast.StringNode:
-		{
-			fmt.Fprintf(&m.sb, "\"%s\"", val)
-		}
+		fmt.Fprintf(&m.sb, "\"%s\"", val)
+
 	case *ast.CommentNode, *ast.CommentGroupNode:
-		{
-			fmt.Fprintf(&m.sb, "#%s", val)
-		}
+		fmt.Fprintf(&m.sb, "#%s", val)
 	default:
-		{
-			fmt.Fprintf(&m.sb, "%s", val)
-		}
+		fmt.Fprintf(&m.sb, "%s", val)
 	}
 }
 
@@ -104,6 +99,8 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int) {
+
+	pre := strings.Repeat(m.indentString, depth)
 	fmt.Fprintf(&m.sb, "[")
 	m.printInlineComment(node, depth)
 	m.sb.WriteString("\n")
@@ -118,28 +115,19 @@ func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int)
 			m.sb.WriteString("\n")
 		}
 	}
-
-	fmt.Fprintf(&m.sb, "\n]")
+	fmt.Fprintf(&m.sb, "\n%s]", pre)
 }
 
 func (m *unmarshaller) unmarshallNode(node ast.Node, depth int) {
 	switch node.(type) {
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode, *ast.CommentGroupNode, *ast.CommentNode:
-		{
-			m.unmarshallInlineNode(nil, node, depth)
-		}
+		m.unmarshallInlineNode(nil, node, depth)
 	case *ast.MappingValueNode:
-		{
-			mappingValueNode := node.(*ast.MappingValueNode)
-			m.unmarshallInlineNode(mappingValueNode.Key, mappingValueNode.Value, depth)
-		}
+		mappingValueNode := node.(*ast.MappingValueNode)
+		m.unmarshallInlineNode(mappingValueNode.Key, mappingValueNode.Value, depth)
 	case *ast.MappingNode:
-		{
-			m.unmarshallMappingNode(node.(*ast.MappingNode), depth)
-		}
+		m.unmarshallMappingNode(node.(*ast.MappingNode), depth)
 	case *ast.SequenceNode:
-		{
-			m.unmarshallSequenceNode(node.(*ast.SequenceNode), depth)
-		}
+		m.unmarshallSequenceNode(node.(*ast.SequenceNode), depth)
 	}
 }
