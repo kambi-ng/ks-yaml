@@ -90,7 +90,7 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 		m.printInlineComment(key, depth)
 		m.sb.WriteString("\n")
 		m.unmarshallNode(value, depth+1)
-		m.sb.WriteString("\n" + pre + "}")
+		fmt.Fprintf(&m.sb, "\n%s}", pre)
 	case *ast.SequenceNode:
 		m.unmarshallSequenceNode(value.(*ast.SequenceNode), depth)
 	default:
