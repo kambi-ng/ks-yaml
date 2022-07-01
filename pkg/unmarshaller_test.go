@@ -125,16 +125,16 @@ func TestConvertMappingNode(t *testing.T) {
     hello: {
       a: 4,
       hello: {
-        hello: 2,
-      },
-    },
-  },
+        hello: 2
+      }
+    }
+  }
 }
 `
 
 	conv := NewConverter()
 	out, _ := conv.Convert(in)
-	if strings.Trim(out, "\n") != strings.Trim(ex, "\n") {
+	if strings.TrimSpace(out) != strings.TrimSpace(ex) {
 		t.Errorf("expected \n%s\ngot\n%s", ex, out)
 	}
 }
