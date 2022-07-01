@@ -122,49 +122,49 @@ services: # ok
       - "/app/main"`,
 			expected: `
 services: { # ok
- db: { # ini comment lain
-  # comment with indent
-  container_name: "scelefeed-db",
-  image: "postgres:13.3-alpine",
-  volumes: [
-   "db-data:/var/lib/postgresql/data"
-  ],
-  restart: "always",
-  environment: {
-   POSTGRES_USER: "${DB_USER}",
-   POSTGRES_PASSWORD: "${DB_PASSWORD}",
-   POSTGRES_DB: "${DB_NAME}", # inline comment habis koma
+  db: { # ini comment lain
+    # comment with indent
+    container_name: "scelefeed-db",
+    image: "postgres:13.3-alpine",
+    volumes: [
+      "db-data:/var/lib/postgresql/data"
+    ],
+    restart: "always",
+    environment: {
+      POSTGRES_USER: "${DB_USER}",
+      POSTGRES_PASSWORD: "${DB_PASSWORD}",
+      POSTGRES_DB: "${DB_NAME}", # inline comment habis koma
+    },
+    networks: [
+      "scelefeed"
+    ],
+    ports: [
+      "${DB_PORT}:5432"
+    ],
   },
-  networks: [
-   "scelefeed"
-  ],
-  ports: [
-   "${DB_PORT}:5432"
-  ],
- },
- server: {
-  container_name: "server-scelefeed",
-  build: {
-   context: ".",
-   dockerfile: "Dockerfile", # inline comment habis koma
+  server: {
+    container_name: "server-scelefeed",
+    build: {
+      context: ".",
+      dockerfile: "Dockerfile", # inline comment habis koma
+    },
+    ports: [
+      "${SERVER_PORT}:${SERVER_PORT}"
+    ],
+    depends_on: [
+      "db"
+    ],
+    environment: [
+      "DB_HOST=db", # inline comment habis koma di array
+      "DB_PORT=5432" # inline comment habis koma di array
+    ],
+    networks: [
+      "scelefeed"
+    ],
+    command: [
+      "/app/main"
+    ],
   },
-  ports: [
-   "${SERVER_PORT}:${SERVER_PORT}"
-  ],
-  depends_on: [
-   "db"
-  ],
-  environment: [
-   "DB_HOST=db", # inline comment habis koma di array
-   "DB_PORT=5432" # inline comment habis koma di array
-  ],
-  networks: [
-   "scelefeed"
-  ],
-  command: [
-   "/app/main"
-  ],
- },
 }`,
 		},
 }
