@@ -52,7 +52,6 @@ func (m *unmarshaller) unmarshallPrimitiveNode(value ast.Node, depth int) {
 	switch value.(type) {
 	case *ast.StringNode:
 		fmt.Fprintf(&m.sb, "\"%s\"", val)
-
 	case *ast.CommentNode, *ast.CommentGroupNode:
 		fmt.Fprintf(&m.sb, "#%s", val)
 	default:
@@ -61,9 +60,10 @@ func (m *unmarshaller) unmarshallPrimitiveNode(value ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
+	pre := strings.Repeat(m.indentString, depth)
 	comment := data.GetComment()
 	if comment != nil {
-		fmt.Fprintf(&m.sb, "%s", comment)
+		fmt.Fprintf(&m.sb, "%s%s", pre, comment)
 		m.sb.WriteString("\n")
 	}
 	for i, val := range data.Values {
