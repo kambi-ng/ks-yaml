@@ -130,19 +130,15 @@ func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int)
 func (m *unmarshaller) unmarshallNode(node ast.Node, depth int) {
 	switch node.(type) {
 	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode, *ast.CommentGroupNode, *ast.CommentNode:
-		{
-			m.unmarshallInlineNode(nil, node, depth)
-			if depth == 0 {
-				m.printInlineComment(node, depth)
-			}
+		m.unmarshallInlineNode(nil, node, depth)
+		if depth == 0 {
+			m.printInlineComment(node, depth)
 		}
 	case *ast.MappingValueNode:
-		{
-			mappingValueNode := node.(*ast.MappingValueNode)
-			m.unmarshallInlineNode(mappingValueNode.Key, mappingValueNode.Value, depth)
-			if depth == 0 {
-				m.printInlineComment(node, depth)
-			}
+		mappingValueNode := node.(*ast.MappingValueNode)
+		m.unmarshallInlineNode(mappingValueNode.Key, mappingValueNode.Value, depth)
+		if depth == 0 {
+			m.printInlineComment(node, depth)
 		}
 	case *ast.MappingNode:
 		m.unmarshallMappingNode(node.(*ast.MappingNode), depth)
