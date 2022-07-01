@@ -105,6 +105,7 @@ func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int) {
+	pre := strings.Repeat(m.indentString, depth)
 	fmt.Fprintf(&m.sb, "[")
 	m.printInlineComment(node, depth)
 	m.sb.WriteString("\n")
@@ -120,7 +121,7 @@ func (m *unmarshaller) unmarshallSequenceNode(node *ast.SequenceNode, depth int)
 		}
 	}
 
-	fmt.Fprintf(&m.sb, "\n]")
+	fmt.Fprintf(&m.sb, "\n%s]", pre)
 	if depth == 0 {
 		fmt.Fprintln(&m.sb)
 	}
