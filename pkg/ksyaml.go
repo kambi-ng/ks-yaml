@@ -9,6 +9,20 @@ type Converter struct {
 
 type ConverterOption func(*Converter)
 
+func InsertWhitespace(in string) string {
+	input_string := strings.Builder{}
+
+	if !strings.HasPrefix(in, "\n") {
+		input_string.WriteString("\n")
+	}
+	input_string.WriteString(in)
+	if !strings.HasSuffix(in, "\n") {
+		input_string.WriteString("\n")
+	}
+
+	return input_string.String()
+}
+
 func WithIndentation(indentation int) ConverterOption {
 	return func(c *Converter) {
 		c.indentation = indentation
@@ -24,17 +38,16 @@ func NewConverter(opts ...ConverterOption) *Converter {
 }
 
 func (c *Converter) Convert(in string) (string, error) {
-
 	s := " "
 
 	if c.indentation == 0 {
-		c.indentation = 1
+		c.indentation = 2
 	}
-    indentString := strings.Repeat(s, c.indentation)
+	indentString := strings.Repeat(s, c.indentation)
 
 	m := newUnmarshaller(indentString)
 
-	return m.unmarshallString(in)
+	return m.convertStringToBytes(InsertWhitespace(in))
 }
 
 func Convert(in string) (string, error) {

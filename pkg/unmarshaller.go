@@ -20,7 +20,14 @@ func newUnmarshaller(indentString string) *unmarshaller {
 	}
 }
 
-func (m *unmarshaller) unmarshallString(in string) (string, error) {
+func (m *unmarshaller) printInlineComment(node ast.Node, depth int) {
+	comment := node.GetComment()
+	if comment != nil {
+		fmt.Fprintf(&m.sb, " %s", comment)
+	}
+}
+
+func (m *unmarshaller) convertStringToBytes(in string) (string, error) {
 	inBytes := []byte(in)
 	return m.unmarshallBytes(inBytes)
 }
@@ -32,145 +39,91 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 		return "", err
 	}
 
-	for _, d := range f.Docs {
-		docB := d.Body
-
-		switch docB.(type) {
-
-		case *ast.MappingNode:
-			mnode := docB.(*ast.MappingNode)
-			m.unmarshallMappingNode(mnode, 0)
-
-		case *ast.MappingValueNode:
-			mvnode := docB.(*ast.MappingValueNode)
-			m.unmarshallMappingValue(mvnode, 0)
-
-		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
-			commAfter := m.unmarshallInlineNode(nil, docB, 0)
-			if commAfter != "" {
-				fmt.Fprintf(&m.sb, " #%s", commAfter)
-			}
-
-		default:
-			fmt.Fprintf(&m.sb,"[x] its  %T %s", docB, docB)
-		}
+	for _, document := range f.Docs {
+		documentBody := document.Body
+		m.unmarshallNode(documentBody, 0)
 	}
 
 	return m.sb.String(), nil
 }
 
-func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
-	pre := strings.Repeat(m.indentString, depth)
-
-	comm := data.GetComment()
-	if comm != nil {
-		fmt.Fprintf(&m.sb, "%s%s\n", pre, comm)
-	}
-
-	for _, val := range data.Values {
-		m.unmarshallMappingValue(val, depth)
-	}
-}
-
-func (m *unmarshaller) unmarshallMappingValue(data *ast.MappingValueNode, depth int) {
-	pre := strings.Repeat(m.indentString, depth)
-
-	comm := data.GetComment()
-	if data.GetComment() != nil {
-		fmt.Fprintf(&m.sb,"%s%s\n", pre, comm)
-	}
-
-	key := data.Key
-	val := data.Value
-
-	commAfter := ""
-
-	switch val.(type) {
-	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
-		commAfter = m.unmarshallInlineNode(key, val, depth)
-	case *ast.MappingNode:
-		fmt.Fprintf(&m.sb, "%s%s: {", pre, key.GetToken().Value)
-		comm := key.GetComment()
-		if comm != nil {
-			fmt.Fprintf(&m.sb," %s", comm)
+func (m *unmarshaller) unmarshallPrimitiveNode(value ast.Node, depth int) {
+	val := value.GetToken().Value
+	switch value.(type) {
+	case *ast.StringNode:
+		{
+			fmt.Fprintf(&m.sb, "\"%s\"", val)
 		}
-		m.sb.WriteString("\n")
-		m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
-		m.sb.WriteString(pre + "}")
-	case *ast.MappingValueNode:
-		fmt.Fprintf(&m.sb, "%s%s: {\n", pre, key)
-		m.unmarshallMappingValue(val.(*ast.MappingValueNode), depth+1)
-		m.sb.WriteString(pre + "}")
-	case *ast.SequenceNode:
-		fmt.Fprintf(&m.sb, "%s%s: [\n", pre, key)
-		m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
-		m.sb.WriteString(pre + "]")
+	case *ast.CommentNode, *ast.CommentGroupNode:
+		{
+			fmt.Fprintf(&m.sb, "#%s", val)
+		}
 	default:
-		fmt.Fprintf(&m.sb,"[x] %s %s: %T", pre, key, val)
+		{
+			fmt.Fprintf(&m.sb, "%s", val)
+		}
 	}
 
 	if depth > 0 {
 		m.sb.WriteString(",")
 	}
-	if commAfter != "" {
-		fmt.Fprintf(&m.sb, " #%s", commAfter)
-	}
-	m.sb.WriteString("\n")
+
+	m.printInlineComment(value, depth)
+
 }
 
-func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) string {
-	pre := strings.Repeat(m.indentString, depth)
+func (m *unmarshaller) unmarshallMappingNode(data *ast.MappingNode, depth int) {
+	m.printInlineComment(data, depth)
+	for i, val := range data.Values {
+		m.unmarshallNode(val, depth)
+		if i != len(data.Values)-1 {
+			fmt.Fprintln(&m.sb)
+		}
+	}
+}
 
+func (m *unmarshaller) unmarshallInlineNode(key, value ast.Node, depth int) {
+	pre := strings.Repeat(m.indentString, depth)
 	m.sb.WriteString(pre)
-	val := value.GetToken().Value
+
 	if key != nil {
 		fmt.Fprintf(&m.sb, "%s: ", key.GetToken().Value)
 	}
+
 	switch value.(type) {
-	case *ast.StringNode:
-		fmt.Fprintf(&m.sb, "\"%s\"", val)
+	case *ast.MappingNode, *ast.MappingValueNode:
+		{
+			m.sb.WriteString("{")
+			m.printInlineComment(key, depth)
+			m.sb.WriteString("\n")
+			m.unmarshallNode(value, depth+1)
+			m.sb.WriteString("\n" + pre + "}")
+			if depth > 0 {
+				m.sb.WriteString(",")
+			}
+		}
 	default:
-		fmt.Fprintf(&m.sb, "%s", val)
+		{
+			m.unmarshallPrimitiveNode(value, depth)
+		}
 	}
-	if value.GetComment() != nil {
-		return value.GetComment().GetToken().Value
-	}
-	return ""
 }
 
-func (m *unmarshaller) unmarshallSequenceNode(data *ast.SequenceNode, depth int) {
-	pre := strings.Repeat(m.indentString, depth)
+func (m *unmarshaller) unmarshallNode(node ast.Node, depth int) {
+	switch node.(type) {
+	case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode, *ast.CommentGroupNode, *ast.CommentNode:
+		{
+			m.unmarshallInlineNode(nil, node, depth)
+		}
 
-	comm := data.GetComment()
-	if comm != nil {
-		fmt.Fprintf(&m.sb, "%s%s\n", pre, comm)
+	case *ast.MappingValueNode:
+		{
+			mappingValueNode := node.(*ast.MappingValueNode)
+			m.unmarshallInlineNode(mappingValueNode.Key, mappingValueNode.Value, depth)
+		}
+	case *ast.MappingNode:
+		{
+			m.unmarshallMappingNode(node.(*ast.MappingNode), depth)
+		}
 	}
-
-	commAfter := ""
-	for i, val := range data.Values {
-		switch val.(type) {
-		case *ast.IntegerNode, *ast.FloatNode, *ast.BoolNode, *ast.StringNode:
-			commAfter = m.unmarshallInlineNode(nil, val, depth)
-		case *ast.MappingNode:
-			m.sb.WriteString(pre + "{\n")
-			m.unmarshallMappingNode(val.(*ast.MappingNode), depth+1)
-			m.sb.WriteString(pre + "}")
-		case *ast.MappingValueNode:
-			m.sb.WriteString(pre + "{\n")
-			m.unmarshallMappingValue(val.(*ast.MappingValueNode), depth)
-			m.sb.WriteString(pre + "}")
-		case *ast.SequenceNode:
-			m.sb.WriteString(pre + "[\n")
-			m.unmarshallSequenceNode(val.(*ast.SequenceNode), depth+1)
-			m.sb.WriteString(pre + "]")
-		}
-		if i != len(data.Values)-1 {
-			m.sb.WriteString(",")
-		}
-		if commAfter != "" {
-			fmt.Fprintf(&m.sb, " #%s", commAfter)
-		}
-		m.sb.WriteString("\n")
-	}
-
 }
