@@ -126,12 +126,16 @@ key: [ # comment
 			name: "Array with object",
 			input: `
 key:
+  - 3
   - obj:
        key: value`,
 			expected: `
 key: [
+ 3,
  {
-   "key": "value"
+  obj: {
+   key: "value"
+  }
  }
 ]`,
 		},
@@ -160,7 +164,7 @@ key:
   key: value`,
 			expected: `
 key: {
- "key": "value"
+ key: "value"
 }`,
 		},
 		{
@@ -170,7 +174,7 @@ key: # comment
   key: value # comment`,
 			expected: `
 key: { # comment
- "key": "value" # comment
+ key: "value" # comment
 }`,
 		},
 		{
@@ -197,8 +201,8 @@ key:
 	key: value`,
 			expected: `
 key: {
- "key": {
-  "key": "value"
+ key: {
+  key: "value"
  }
 }`,
 		},
