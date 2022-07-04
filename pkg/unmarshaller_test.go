@@ -5,7 +5,13 @@ import "strings"
 
 const oneSpace = " "
 
-func testEqual(t *testing.T, exp, out string) {
+type testTable struct {
+	name string
+	in   string
+	exp  string
+}
+
+func assertEqual(t *testing.T, exp, out string) {
 	exp = strings.TrimSpace(exp)
 	out = strings.TrimSpace(out)
 	if exp != out {
@@ -14,342 +20,227 @@ func testEqual(t *testing.T, exp, out string) {
 }
 
 func TestUnmarshallerSimple(t *testing.T) {
-	t.Run("Simple string key value", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
 
-		in := `key: value`
-		exp := `key: "value"`
-		out, err := um.unmarshallString(in)
+	tb := []testTable{
+		{
+			name: "Simple String Key Value",
+			in:   `key: value`,
+			exp:  `key: "value"`,
+		},
+		{
+			name: "Simple String Key Value with comment",
+			in:   `key: value # comment`,
+			exp:  `key: "value" # comment`,
+		},
 
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
+		{
+			name: "Simple boolean Key Value",
+			in:   `key: true`,
+			exp:  `key: true`,
+		},
+		{
+			name: "Simple boolean Key Value with comment",
+			in:   `key: true # comment`,
+			exp:  `key: true # comment`,
+		},
+		{
+			name: "Simple integer Key Value",
+			in:   `key: 1`,
+			exp:  `key: 1`,
+		},
+		{
+			name: "Simple integer Key Value with comment",
+			in:   `key: 1 # comment`,
+			exp:  `key: 1 # comment`,
+		},
+		{
+			name: "Simple float Key Value",
+			in:   `key: 3.1415`,
+			exp:  `key: 3.1415`,
+		},
+		{
+			name: "Simple float Key Value with comment",
+			in:   `key: 3.1415 # comment`,
+			exp:  `key: 3.1415 # comment`,
+		},
+		{
+			name: "Simple null Key Value",
+			in:   `key: null`,
+			exp:  `key: null`,
+		},
+	}
 
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple string key value with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: value # comment`
-		exp := `key: "value" # comment`
-
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple boolean key value", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: true`
-		exp := `key: true`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple boolean key value with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: true # comment`
-		exp := `key: true # comment`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple integer key value", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: 1`
-		exp := `key: 1`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple integer key value with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: 1 # comment`
-		exp := `key: 1 # comment`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple float key value", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: 1.0`
-		exp := `key: 1.0`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple float key value with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: 1.0 # comment`
-		exp := `key: 1.0 # comment`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple null key value", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: null`
-		exp := `key: null`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple null key value with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `key: null # comment`
-		exp := `key: null # comment`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, err := um.unmarshallString(tt.in)
+			if err != nil {
+				t.Errorf("Error: %s", err)
+				return
+			}
+			assertEqual(t, tt.exp, out)
+		})
+	}
 }
 
 func TestUnmarshallerArray(t *testing.T) {
 
-	t.Run("Simple array", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
+	tb := []testTable{
+		{
+			name: "Simple array",
+			in: `
 key:
   - 1
   - string
   - true
   - 3.1415
-  - null`
-
-		exp := `
+  - null`,
+			exp: `
 key: [
  1,
- "string",
+ string,
  true,
  3.1415,
  null
-]`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple array with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
-# comment
+]`,
+		},
+		{
+			name: "Simple array with comment",
+			in: `
 key: # comment
   - 1 # comment
   - string # comment
   - true # comment
   - 3.1415 # comment
-  - null # comment`
-
-		exp := `
-# comment
+  - null # comment`,
+			exp: `
 key: [ # comment
  1, # comment
  "string", # comment
  true, # comment
  3.1415, # comment
  null # comment
-]`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Array with simple object", func(t *testing.T) {
-
-		um := newUnmarshaller(oneSpace)
-
-		in := `
+]`,
+		},
+		{
+			name: "Array with object",
+			in: `
 key:
   - obj:
-       key: value`
-
-		exp := `
+       key: value`,
+			exp: `
 key: [
- obj:
-  {
-   key: "value"
-  }
-]`
-		out, err := um.unmarshallString(in)
+ {
+   "key": "value"
+ }
+]`,
+		},
+	}
 
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-
-	})
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, err := um.unmarshallString(tt.in)
+			if err != nil {
+				t.Errorf("Error: %s", err)
+				return
+			}
+			assertEqual(t, tt.exp, out)
+		})
+	}
 }
 
 func TestUnmarshallerObject(t *testing.T) {
 
-	t.Run("Simple object", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
+	tb := []testTable{
+		{
+			name: "Simple object",
+			in: `
 key:
-  key: value`
-
-		exp := `
+  key: value`,
+			exp: `
 key: {
- key: "value"
-}`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Simple object with comment", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
-# comment
+ "key": "value"
+}`,
+		},
+		{
+			name: "Simple object with comment",
+			in: `
 key: # comment
-  key: value # comment`
-
-		exp := `
-# comment
+  key: value # comment`,
+			exp: `
 key: { # comment
- key: "value" # comment
-}`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
-
-	t.Run("Object with simple array", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
+ "key": "value" # comment
+}`,
+		},
+		{
+			name: "Object with array",
+			in: `
+key:
+  arr:
+	- 1
+	- string
+`,
+			exp: `
+key: {
+ arr: [
+  1,
+  "string"
+ ]
+}`,
+		},
+		{
+			name: "Nested Object",
+			in: `
 key:
   key:
-	- value`
-
-		exp := `
+	key: value`,
+			exp: `
 key: {
- key: [
-  "value"
- ]
-}`
-		out, err := um.unmarshallString(in)
+ "key": {
+  "key": "value"
+ }
+}`,
+		},
+	}
 
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, err := um.unmarshallString(tt.in)
+			if err != nil {
+				t.Errorf("Error: %s", err)
+				return
+			}
+			assertEqual(t, tt.exp, out)
+		})
+	}
 }
 
 func TestUnmarshallerLiteral(t *testing.T) {
 
-	t.Run("Simple literal", func(t *testing.T) {
-		um := newUnmarshaller(oneSpace)
-
-		in := `
-literal : |
- this is literal
- right?
-`
-		exp := `
-literal: |
- this is literal
- right?
-`
-		out, err := um.unmarshallString(in)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			return
-		}
-
-		testEqual(t, exp, out)
-	})
+	tb := []testTable{
+		{
+			name: "Simple literal",
+			in: `
+litral: |
+  this is literal
+  right?`,
+			exp: `
+litral: |
+  this is literal
+  right?`,
+		},
+	}
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, err := um.unmarshallString(tt.in)
+			if err != nil {
+				t.Errorf("Error: %s", err)
+				return
+			}
+			assertEqual(t, tt.exp, out)
+		})
+	}
 }
