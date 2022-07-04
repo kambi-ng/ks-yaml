@@ -255,5 +255,101 @@ key: [
 		testEqual(t, exp, out)
 
 	})
+}
 
+func TestUnmarshallerObject(t *testing.T) {
+
+	t.Run("Simple object", func(t *testing.T) {
+		um := newUnmarshaller(oneSpace)
+
+		in := `
+key:
+  key: value`
+
+		exp := `
+key: {
+ key: "value"
+}`
+		out, err := um.unmarshallString(in)
+
+		if err != nil {
+			t.Errorf("Error: %s", err)
+			return
+		}
+
+		testEqual(t, exp, out)
+	})
+
+	t.Run("Simple object with comment", func(t *testing.T) {
+		um := newUnmarshaller(oneSpace)
+
+		in := `
+# comment
+key: # comment
+  key: value # comment`
+
+		exp := `
+# comment
+key: { # comment
+ key: "value" # comment
+}`
+		out, err := um.unmarshallString(in)
+
+		if err != nil {
+			t.Errorf("Error: %s", err)
+			return
+		}
+
+		testEqual(t, exp, out)
+	})
+
+	t.Run("Object with simple array", func(t *testing.T) {
+		um := newUnmarshaller(oneSpace)
+
+		in := `
+key:
+  key:
+	- value`
+
+		exp := `
+key: {
+ key: [
+  "value"
+ ]
+}`
+		out, err := um.unmarshallString(in)
+
+		if err != nil {
+			t.Errorf("Error: %s", err)
+			return
+		}
+
+		testEqual(t, exp, out)
+	})
+}
+
+func TestUnmarshallerLiteral(t *testing.T) {
+
+	t.Run("Simple literal", func(t *testing.T) {
+		um := newUnmarshaller(oneSpace)
+
+		in := `
+literal : |
+ this is literal
+ right?
+`
+		exp := `
+literal: |
+ this is literal
+ right?
+`
+		out, err := um.unmarshallString(in)
+
+		if err != nil {
+			t.Errorf("Error: %s", err)
+			return
+		}
+
+		testEqual(t, exp, out)
+	})
 }
