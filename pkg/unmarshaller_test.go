@@ -98,7 +98,7 @@ key:
 			expected: `
 key: [
  1,
- string,
+ "string",
  true,
  3.1415,
  null
@@ -197,8 +197,8 @@ key: {
 			name: "Nested Object",
 			input: `
 key:
-  key:
-	key: value`,
+   key:
+	  key: value`,
 			expected: `
 key: {
  key: {
