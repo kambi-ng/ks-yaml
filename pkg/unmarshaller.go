@@ -48,10 +48,11 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		m.unmarshallKeyValue(v, depth+1)
 	case *ast.MappingNode:
 		m.unmarshallObject(v, depth)
+	case *ast.SequenceNode:
+		m.unmarshallArray(v, depth)
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, n)
 	}
-
 }
 
 func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
@@ -80,7 +81,7 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 		m.sb.WriteString("\n")
 	}
 	if depth != 0 {
-		m.sb.WriteString("}\n")
+		m.sb.WriteString("}")
 	}
 }
 
@@ -103,4 +104,17 @@ func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
 	if v.GetComment() != nil {
 		fmt.Fprintf(&m.sb, " #%s", v.GetComment().GetToken().Value)
 	}
+}
+
+func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
+	m.sb.WriteString("[\n")
+	v := n.Values
+	for i, vv := range v {
+		m.unmarshallNode(vv, depth+1)
+		if i != len(v)-1 {
+			m.sb.WriteString(",")
+		}
+		m.sb.WriteString("\n")
+	}
+	m.sb.WriteString("]\n")
 }
