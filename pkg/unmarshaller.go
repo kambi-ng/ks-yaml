@@ -1,10 +1,10 @@
 package ksyaml
 
 import (
+	"github.com/goccy/go-yaml/ast"
 	"github.com/goccy/go-yaml/parser"
 
 	"fmt"
-	"github.com/goccy/go-yaml/ast"
 	"strings"
 )
 
@@ -45,22 +45,20 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	case *ast.BoolNode, *ast.FloatNode, *ast.IntegerNode, *ast.NullNode, *ast.StringNode:
 		m.unmarshallValue(v, depth)
 	case *ast.MappingValueNode:
-		m.unmarshallKeyValue(v, depth+1)
+		m.unmarshallKeyValue(v, depth)
 	case *ast.MappingNode:
 		m.unmarshallObject(v, depth)
 	case *ast.SequenceNode:
 		m.unmarshallArray(v, depth)
 	default:
-		fmt.Fprintf(&m.sb, "[x](%T)%s", n, n)
+		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
 }
 
-func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
-	pre := strings.Repeat(m.indentString, depth)
-	m.sb.WriteString(pre)
-	m.sb.WriteString(k.GetToken().Value)
-	m.sb.WriteString(": ")
+// TODO: implement edge case where array or object has nested object with only one key value pair
 
+func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
+	fmt.Fprintf(&m.sb, "%s: ", k.GetToken().Value)
 	comm := k.GetComment()
 	if comm != nil {
 		fmt.Fprintf(&m.sb, " #%s", comm.GetToken().Value)
@@ -68,20 +66,22 @@ func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
-
+	pre := strings.Repeat(m.indentString, depth)
 	if depth != 0 {
 		m.sb.WriteString("{\n")
 	}
 	v := o.Values
 	for i, kv := range v {
-		m.unmarshallKeyValue(kv, depth)
+		m.sb.WriteString(pre)
+		m.unmarshallNode(kv, depth+1)
 		if i != len(v)-1 && depth != 0 {
 			m.sb.WriteString(",")
 		}
 		m.sb.WriteString("\n")
 	}
 	if depth != 0 {
-		m.sb.WriteString("}")
+		pre := strings.Repeat(m.indentString, max(0, depth-1))
+		fmt.Fprintf(&m.sb, "%s}", pre)
 	}
 }
 
@@ -89,11 +89,10 @@ func (m *unmarshaller) unmarshallKeyValue(n *ast.MappingValueNode, depth int) {
 	k := n.Key
 	v := n.Value
 	m.unmarshallKey(k, depth)
-	m.unmarshallNode(v, depth+1)
+	m.unmarshallNode(v, depth)
 }
 
 func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
-
 	vs := v.GetToken().Value
 	switch v.(type) {
 	case *ast.StringNode:
@@ -107,14 +106,23 @@ func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
+	pre := strings.Repeat(m.indentString, depth)
 	m.sb.WriteString("[\n")
 	v := n.Values
 	for i, vv := range v {
+		m.sb.WriteString(pre)
 		m.unmarshallNode(vv, depth+1)
-		if i != len(v)-1 {
+		if i != len(v)-1 && depth != 0 {
 			m.sb.WriteString(",")
 		}
 		m.sb.WriteString("\n")
 	}
 	m.sb.WriteString("]\n")
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
