@@ -117,7 +117,8 @@ func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
 		}
 		m.sb.WriteString("\n")
 	}
-	m.sb.WriteString("]\n")
+	prec := strings.Repeat(m.indentString, max(0, depth-1))
+	fmt.Fprintf(&m.sb, "%s]", prec)
 }
 
 func max(a, b int) int {
