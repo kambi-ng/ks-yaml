@@ -39,6 +39,8 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 	for _, d := range f.Docs {
 		docB := d.Body
 		m.unmarshallNode(docB, 0)
+		m.writeInlineComment()
+		m.sb.WriteString("\n")
 	}
 
 	return m.sb.String(), nil
@@ -83,14 +85,14 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 
 	c := o.GetComment()
 	if c != nil {
-		fmt.Fprintf(&m.sb, "%s#%s\n", prev, c.GetToken().Value)
+		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
 	}
 	kvs := o.Values
 	for i, kv := range kvs {
 
 		kvc := kv.GetComment()
 		if kvc != nil {
-			fmt.Fprintf(&m.sb, " #%s\n", kvc.GetToken().Value)
+			fmt.Fprintf(&m.sb, "%s#%s\n", pre, kvc.GetToken().Value)
 		}
 
 		m.sb.WriteString(pre)
