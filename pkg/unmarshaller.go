@@ -45,7 +45,7 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	case *ast.BoolNode, *ast.FloatNode, *ast.IntegerNode, *ast.NullNode, *ast.StringNode:
 		m.unmarshallValue(v, depth)
 	case *ast.MappingValueNode:
-		m.unmarshallKeyValue(v, depth)
+		m.unmarshallKeyValueObj(v, depth)
 	case *ast.MappingNode:
 		m.unmarshallObject(v, depth)
 	case *ast.SequenceNode:
@@ -54,8 +54,6 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
 }
-
-// TODO: implement edge case where array or object has nested object with only one key value pair
 
 func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
 	fmt.Fprintf(&m.sb, "%s: ", k.GetToken().Value)
@@ -74,8 +72,8 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 	if c != nil {
 		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
 	}
-	v := o.Values
-	for i, kv := range v {
+	kvs := o.Values
+	for i, kv := range kvs {
 
 		kvc := kv.GetComment()
 		if kvc != nil {
@@ -83,8 +81,13 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 		}
 
 		m.sb.WriteString(pre)
-		m.unmarshallNode(kv, depth+1)
-		if i != len(v)-1 && depth != 0 {
+
+		k := kv.Key
+		v := kv.Value
+		m.unmarshallKey(k, depth)
+		m.unmarshallNode(v, depth+1)
+
+		if i != len(kvs)-1 && depth != 0 {
 			m.sb.WriteString(",")
 		}
 		m.sb.WriteString("\n")
@@ -95,11 +98,25 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 	}
 }
 
-func (m *unmarshaller) unmarshallKeyValue(n *ast.MappingValueNode, depth int) {
+func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int) {
+	pre := strings.Repeat(m.indentString, depth)
+	if depth != 0 {
+		m.sb.WriteString("{\n")
+	}
+	c := n.GetComment()
+	if c != nil {
+		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
+	}
+
 	k := n.Key
 	v := n.Value
+	m.sb.WriteString(pre)
 	m.unmarshallKey(k, depth)
 	m.unmarshallNode(v, depth+1)
+	if depth != 0 {
+		pre := strings.Repeat(m.indentString, max(0, depth-1))
+		fmt.Fprintf(&m.sb, "\n%s}", pre)
+	}
 }
 
 func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
