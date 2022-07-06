@@ -101,6 +101,7 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 		v := kv.Value
 		m.unmarshallKey(k, depth)
 		m.unmarshallNode(v, depth+1)
+		m.writeInlineComment()
 
 		if i != len(kvs)-1 && depth != 0 {
 			m.sb.WriteString(",")
