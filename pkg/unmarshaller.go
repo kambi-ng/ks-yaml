@@ -46,17 +46,32 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 	return m.sb.String(), nil
 }
 
-// TODO write brackets here
 func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
+	pre := strings.Repeat(m.indentString, max(0, depth-1))
+
 	switch v := n.(type) {
 	case *ast.BoolNode, *ast.FloatNode, *ast.IntegerNode, *ast.NullNode, *ast.StringNode:
 		m.unmarshallValue(v, depth)
 	case *ast.MappingValueNode:
+		if depth != 0 {
+			m.sb.WriteString("{")
+			m.unmarshallKeyValueObj(v, depth)
+			fmt.Fprintf(&m.sb, "\n%s}", pre)
+			break
+		}
 		m.unmarshallKeyValueObj(v, depth)
 	case *ast.MappingNode:
+		if depth != 0 {
+			m.sb.WriteString("{")
+			m.unmarshallObject(v, depth)
+			fmt.Fprintf(&m.sb, "%s}", pre)
+			break
+		}
 		m.unmarshallObject(v, depth)
 	case *ast.SequenceNode:
+		m.sb.WriteString("[")
 		m.unmarshallArray(v, depth)
+		fmt.Fprintf(&m.sb, "%s]", pre)
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
@@ -67,22 +82,14 @@ func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
 	comm := k.GetComment()
 	if comm != nil {
 		ic := comm.GetToken().Value
-		m.inlineComment = ic
-		m.hasInlineComment = true
+		m.addInlineComment(ic)
 	}
 }
 
 func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
-	prev := strings.Repeat(m.indentString, max(0, depth-1))
-	if depth != 0 {
-		m.sb.WriteString("{")
-		m.writeInlineComment()
-		m.sb.WriteString("\n")
-	} else {
-		m.writeInlineComment()
-	}
-
+	m.writeInlineComment()
+	m.sb.WriteString("\n")
 	c := o.GetComment()
 	if c != nil {
 		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
@@ -101,27 +108,19 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 		v := kv.Value
 		m.unmarshallKey(k, depth)
 		m.unmarshallNode(v, depth+1)
-		m.writeInlineComment()
 
 		if i != len(kvs)-1 && depth != 0 {
 			m.sb.WriteString(",")
 		}
+		m.writeInlineComment()
 		m.sb.WriteString("\n")
-	}
-	if depth != 0 {
-		fmt.Fprintf(&m.sb, "%s}", prev)
 	}
 }
 
 func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
-	if depth != 0 {
-		m.sb.WriteString("{")
-		m.writeInlineComment()
-		m.sb.WriteString("\n")
-	} else {
-		m.writeInlineComment()
-	}
+	m.writeInlineComment()
+	m.sb.WriteString("\n")
 
 	c := n.GetComment()
 	if c != nil {
@@ -135,10 +134,6 @@ func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int)
 	m.unmarshallNode(v, depth+1)
 	m.writeInlineComment()
 
-	if depth != 0 {
-		pre := strings.Repeat(m.indentString, max(0, depth-1))
-		fmt.Fprintf(&m.sb, "\n%s}", pre)
-	}
 }
 
 func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
@@ -151,15 +146,12 @@ func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
 	}
 	if v.GetComment() != nil {
 		ic := v.GetComment().GetToken().Value
-		m.inlineComment = ic
-		m.hasInlineComment = true
+		m.addInlineComment(ic)
 	}
 }
 
 func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
-
-	m.sb.WriteString("[")
 	m.writeInlineComment()
 	m.sb.WriteString("\n")
 
@@ -178,19 +170,19 @@ func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
 		m.writeInlineComment()
 		m.sb.WriteString("\n")
 	}
-	prec := strings.Repeat(m.indentString, max(0, depth-1))
-	fmt.Fprintf(&m.sb, "%s]", prec)
 }
 
-func (m *unmarshaller) writeInlineComment(prefix ...string) {
-	for _, p := range prefix {
-		m.sb.WriteString(p)
+func (m *unmarshaller) writeInlineComment() {
+	if !m.hasInlineComment {
+		return
 	}
+	fmt.Fprintf(&m.sb, " #%s", m.inlineComment)
+	m.hasInlineComment = false
+}
 
-	if m.hasInlineComment {
-		fmt.Fprintf(&m.sb, " #%s", m.inlineComment)
-		m.hasInlineComment = false
-	}
+func (m *unmarshaller) addInlineComment(ic string) {
+	m.hasInlineComment = true
+	m.inlineComment = ic
 }
 
 func max(a, b int) int {
