@@ -72,19 +72,18 @@ func (m *unmarshaller) unmarshallKey(k ast.Node, depth int) {
 
 func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
+	prev := strings.Repeat(m.indentString, max(0, depth-1))
 	if depth != 0 {
 		m.sb.WriteString("{")
-	}
-
-	if m.hasInlineComment {
-		fmt.Fprintf(&m.sb, "%s#%s\n", pre, m.inlineComment)
-	} else if depth != 0 {
+		m.writeInlineComment()
 		m.sb.WriteString("\n")
+	} else {
+		m.writeInlineComment()
 	}
 
 	c := o.GetComment()
 	if c != nil {
-		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
+		fmt.Fprintf(&m.sb, "%s#%s\n", prev, c.GetToken().Value)
 	}
 	kvs := o.Values
 	for i, kv := range kvs {
@@ -107,8 +106,7 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 		m.sb.WriteString("\n")
 	}
 	if depth != 0 {
-		pre := strings.Repeat(m.indentString, max(0, depth-1))
-		fmt.Fprintf(&m.sb, "%s}", pre)
+		fmt.Fprintf(&m.sb, "%s}", prev)
 	}
 }
 
@@ -116,12 +114,12 @@ func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int)
 	pre := strings.Repeat(m.indentString, depth)
 	if depth != 0 {
 		m.sb.WriteString("{")
-	}
-	if m.hasInlineComment {
-		fmt.Fprintf(&m.sb, " #%s\n", m.inlineComment)
-	} else if depth != 0 {
+		m.writeInlineComment()
 		m.sb.WriteString("\n")
+	} else {
+		m.writeInlineComment()
 	}
+
 	c := n.GetComment()
 	if c != nil {
 		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
@@ -132,6 +130,8 @@ func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int)
 	m.sb.WriteString(pre)
 	m.unmarshallKey(k, depth)
 	m.unmarshallNode(v, depth+1)
+	m.writeInlineComment()
+
 	if depth != 0 {
 		pre := strings.Repeat(m.indentString, max(0, depth-1))
 		fmt.Fprintf(&m.sb, "\n%s}", pre)
@@ -157,12 +157,8 @@ func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
 
 	m.sb.WriteString("[")
-
-	if m.hasInlineComment {
-		fmt.Fprintf(&m.sb, "%s#%s\n", pre, m.inlineComment)
-	} else if depth != 0 {
-		m.sb.WriteString("\n")
-	}
+	m.writeInlineComment()
+	m.sb.WriteString("\n")
 
 	c := n.GetComment()
 	if c != nil {
@@ -176,16 +172,22 @@ func (m *unmarshaller) unmarshallArray(n *ast.SequenceNode, depth int) {
 		if i != len(v)-1 && depth != 0 {
 			m.sb.WriteString(",")
 		}
-
-		if m.hasInlineComment {
-			fmt.Fprintf(&m.sb, " #%s", m.inlineComment)
-			m.hasInlineComment = false
-		}
-
+		m.writeInlineComment()
 		m.sb.WriteString("\n")
 	}
 	prec := strings.Repeat(m.indentString, max(0, depth-1))
 	fmt.Fprintf(&m.sb, "%s]", prec)
+}
+
+func (m *unmarshaller) writeInlineComment(prefix ...string) {
+	for _, p := range prefix {
+		m.sb.WriteString(p)
+	}
+
+	if m.hasInlineComment {
+		fmt.Fprintf(&m.sb, " #%s", m.inlineComment)
+		m.hasInlineComment = false
+	}
 }
 
 func max(a, b int) int {
