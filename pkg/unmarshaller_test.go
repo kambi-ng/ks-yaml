@@ -182,8 +182,8 @@ key: { # comment
 			input: `
 key:
   arr:
-	- 1
-	- string
+   - 1
+   - string
 `,
 			expected: `
 key: {
@@ -197,8 +197,9 @@ key: {
 			name: "Nested Object",
 			input: `
 key:
-   key:
-	  key: value`,
+  key:
+    key: value
+`,
 			expected: `
 key: {
  key: {

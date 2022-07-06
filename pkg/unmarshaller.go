@@ -30,6 +30,7 @@ func (m *unmarshaller) unmarshallString(in string) (string, error) {
 }
 
 func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
+	in = append(in, byte('\n'))
 	f, err := parser.ParseBytes(in, parser.ParseComments)
 
 	if err != nil {
