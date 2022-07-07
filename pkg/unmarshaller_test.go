@@ -226,7 +226,7 @@ func TestUnmarshallerLiteral(t *testing.T) {
 
 	tb := []testTable{
 		{
-			name: "Simple literal",
+			name: "Simple scalar literal",
 			input: `
 litral: |
   this is literal
@@ -236,7 +236,99 @@ litral: |
   this is literal
   right?`,
 		},
+		{
+			name: "Simple folded literal",
+			input: `
+litral: >
+  this is literal
+  right?`,
+			expected: `
+litral: >
+  this is literal
+  right?`,
+		},
+		{
+			name: "Scalar literal with comment",
+			input: `
+litral: | # comment
+  this is literal
+  right?`,
+			expected: `
+litral: | # comment
+  this is literal
+  right?`,
+		},
+		{
+			name: "Folded literal with comment",
+			input: `
+litral: > # comment
+  this is literal
+  right?`,
+			expected: `
+litral: > # comment
+  this is literal
+  right?`,
+		},
+		{
+			name: "Scalar literal inside object",
+			input: `
+key:
+  litral: | # comment
+    this is literal
+    right?`,
+			expected: `
+key: {
+ litral: "this is literal
+    right?" # comment
+}`,
+		},
+		{
+			name: "Scalar literal inside array with comment",
+			input: `
+key:
+  - | # comment
+   this is literal
+   right?`,
+			expected: `
+key: [
+ "this is literal
+   right?" # comment
+]`,
+		},
+		{
+			name: "Folded literal inside object",
+			input: `
+key:
+  litral: > # comment
+    this is literal
+
+    right?
+  bool: true`,
+			expected: `
+key: {
+ litral: "this is literal
+
+    right?", # comment
+ bool: true
+}`,
+		},
+		{
+			name: "Folded literal inside array",
+			input: `
+key:
+  - > # comment
+    this is literal
+    right?
+  - true`,
+			expected: `
+key: [
+ "this is literal
+    right?", # comment
+ true
+]`,
+		},
 	}
+
 	for _, tt := range tb {
 		t.Run(tt.name, func(t *testing.T) {
 			um := newUnmarshaller(oneSpace)
