@@ -73,8 +73,27 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		m.sb.WriteString("[")
 		m.unmarshallArray(v, depth)
 		fmt.Fprintf(&m.sb, "%s]", pre)
+	case *ast.LiteralNode:
+		m.unmarshallLiteral(v, depth)
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
+	}
+}
+
+func (m *unmarshaller) unmarshallLiteral(n *ast.LiteralNode, depth int) {
+
+	if depth <= 1 {
+		fmt.Fprintf(&m.sb, "%s", n.String())
+		return
+	}
+
+	origin := n.Value.GetToken().Origin
+	lit := strings.TrimSpace(origin)
+
+	fmt.Fprintf(&m.sb, `"%s"`, lit)
+	if n.GetComment() != nil {
+		c := n.GetComment().GetToken().Value
+		m.addInlineComment(c)
 	}
 }
 
