@@ -75,6 +75,15 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		fmt.Fprintf(&m.sb, "%s]", pre)
 	case *ast.LiteralNode:
 		m.unmarshallLiteral(v, depth)
+
+		// TODO other nodes
+		// Anchor node
+		// alias node
+		// comment node and comment group node
+		// directive node
+		// infinity node
+		// Merge Key node
+		// Tag Node
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
