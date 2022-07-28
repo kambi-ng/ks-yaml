@@ -50,6 +50,13 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	pre := strings.Repeat(m.indentString, max(0, depth-1))
 
+	// TODO other nodes
+	// Anchor node
+	// alias node
+	// comment node and comment group node
+	// directive node
+	// Merge Key node
+	// Tag Node
 	switch v := n.(type) {
 	case *ast.BoolNode, *ast.FloatNode, *ast.IntegerNode, *ast.NullNode, *ast.StringNode:
 		m.unmarshallValue(v, depth)
@@ -76,17 +83,40 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	case *ast.LiteralNode:
 		m.unmarshallLiteral(v, depth)
 	case *ast.InfinityNode, *ast.NanNode:
-		 m.unmarshallSpecialMathNode(v, depth)
-	// TODO other nodes
-	// Anchor node
-	// alias node
-	// comment node and comment group node
-	// directive node
-	// Merge Key node
-	// Tag Node
+		m.unmarshallSpecialMathNode(v, depth)
+	case *ast.AnchorNode:
+		m.unmarshallAnchor(v, depth)
+	case *ast.AliasNode:
+		m.unmarshallAliasNode(v, depth)
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
+}
+
+func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
+	valtkn := n.Value.GetToken()
+	fmt.Fprintf(&m.sb, "*%s", valtkn.Value)
+
+	
+	// TODO change a very hacky way to get the alias' inline commnet because
+	// ERROR: alias node's comment is not parsed correctly
+	commtkn := valtkn.Next
+	if commtkn == nil {
+		return
+	}
+	valln := valtkn.Position.Line
+	commln := commtkn.Position.Line
+	comm := commtkn.Origin
+	if comm[0] == '#' && valln == commln {
+		ic := strings.TrimRight(comm[1:], "\n")
+		m.addInlineComment(ic)
+	}
+	
+}
+
+func (m *unmarshaller) unmarshallAnchor(n *ast.AnchorNode, depth int) {
+	fmt.Fprintf(&m.sb, "&%s ", n.Name.GetToken().Value)
+	m.unmarshallNode(n.Value, depth)
 }
 
 func (m *unmarshaller) unmarshallSpecialMathNode(n ast.Node, depth int) {

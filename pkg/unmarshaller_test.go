@@ -376,3 +376,52 @@ key: [
 		})
 	}
 }
+
+func TestAnchorAndAlias(t *testing.T) {
+
+	tb := []testTable{
+		{
+			name: "Anchor",
+			input: `
+anchor: &A
+  key: value`,
+			expected: `
+anchor: &A {
+ key: "value"
+}`,
+		},
+		{
+			name: "Alias",
+			input: `
+alias: *A`,
+			expected: `
+alias: *A`,
+		},
+		{
+			name: "Anchor and alias",
+			input: `
+obj:
+   anchor: &A
+      key: value
+obj2:
+  alias: *A # comment`,
+			expected: `
+obj: {
+ anchor: &A {
+  key: "value"
+ }
+}
+obj2: {
+ alias: *A # comment
+}`,
+		},
+	}
+
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, _ := um.unmarshallString(tt.input)
+			assertEqual(t, tt.expected, out)
+		})
+	}
+}
