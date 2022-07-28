@@ -75,14 +75,13 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		fmt.Fprintf(&m.sb, "%s]", pre)
 	case *ast.LiteralNode:
 		m.unmarshallLiteral(v, depth)
-	case *ast.InfinityNode:
-		 m.unmarshallInfinity(v, depth)
+	case *ast.InfinityNode, *ast.NanNode:
+		 m.unmarshallSpecialMathNode(v, depth)
 	// TODO other nodes
 	// Anchor node
 	// alias node
 	// comment node and comment group node
 	// directive node
-	// infinity node
 	// Merge Key node
 	// Tag Node
 	default:
@@ -90,7 +89,7 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	}
 }
 
-func (m *unmarshaller) unmarshallInfinity(n *ast.InfinityNode, depth int) {
+func (m *unmarshaller) unmarshallSpecialMathNode(n ast.Node, depth int) {
 	m.sb.WriteString(n.GetToken().Value)
 	if n.GetComment() != nil {
 		ic := n.GetComment().GetToken().Value

@@ -78,6 +78,11 @@ func TestUnmarshallerSimple(t *testing.T) {
 			input:    "key: -.inf",
 			expected: `key: -.inf`,
 		},
+		{
+			name:     "Simple nan Key Value",
+			input:    "key: .nan",
+			expected: `key: .nan`,
+		},
 	}
 
 	for _, tt := range tb {
@@ -225,6 +230,16 @@ key: # comment obj
 			expected: `
 key: { # comment obj
  key: .inf # comment infinity
+}`,
+		},
+		{
+			name: "Infinity Inside of Object",
+			input: `
+key: # comment obj
+  key: .nan # comment nan`,
+			expected: `
+key: { # comment obj
+ key: .nan # comment nan
 }`,
 		},
 	}
