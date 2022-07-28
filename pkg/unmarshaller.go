@@ -97,9 +97,9 @@ func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
 	valtkn := n.Value.GetToken()
 	fmt.Fprintf(&m.sb, "*%s", valtkn.Value)
 
-	
-	// TODO change a very hacky way to get the alias' inline commnet because
-	// ERROR: alias node's comment is not parsed correctly
+
+	// TODO change a very hacky way to get the alias' inline comment because
+	// BUG alias node's comment is not parsed correctly
 	commtkn := valtkn.Next
 	if commtkn == nil {
 		return
@@ -111,7 +111,6 @@ func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
 		ic := strings.TrimRight(comm[1:], "\n")
 		m.addInlineComment(ic)
 	}
-	
 }
 
 func (m *unmarshaller) unmarshallAnchor(n *ast.AnchorNode, depth int) {
