@@ -91,7 +91,7 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 }
 
 func (m *unmarshaller) unmarshallInfinity(n *ast.InfinityNode, depth int) {
-	m.sb.WriteString("Infinity")
+	m.sb.WriteString(n.GetToken().Value)
 	if n.GetComment() != nil {
 		ic := n.GetComment().GetToken().Value
 		m.addInlineComment(ic)

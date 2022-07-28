@@ -69,9 +69,14 @@ func TestUnmarshallerSimple(t *testing.T) {
 			expected: `key: null`,
 		},
 		{
-			name: "Simple infinity Key Value",
-			input: "key: .inf",
-			expected: `key: Infinity`,
+			name:     "Simple infinity Key Value",
+			input:    "key: .inf",
+			expected: `key: .inf`,
+		},
+		{
+			name:     "Simple negative infinity Key Value",
+			input:    "key: -.inf",
+			expected: `key: -.inf`,
 		},
 	}
 
@@ -219,7 +224,7 @@ key: # comment obj
   key: .inf # comment infinity`,
 			expected: `
 key: { # comment obj
- key: Infinity # comment infinity
+ key: .inf # comment infinity
 }`,
 		},
 	}
