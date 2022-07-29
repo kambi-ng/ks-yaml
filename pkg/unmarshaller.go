@@ -15,6 +15,7 @@ type unmarshaller struct {
 	// context
 	inlineComment    string
 	hasInlineComment bool
+	inhibitNextNewLine bool
 }
 
 func newUnmarshaller(indentString string) *unmarshaller {
@@ -51,9 +52,6 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	pre := strings.Repeat(m.indentString, max(0, depth-1))
 
 	// TODO other nodes
-	// Anchor node
-	// alias node
-	// comment node and comment group node
 	// directive node
 	// Merge Key node
 	// Tag Node
@@ -88,6 +86,13 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		m.unmarshallAnchor(v, depth)
 	case *ast.AliasNode:
 		m.unmarshallAliasNode(v, depth)
+	case *ast.CommentGroupNode, *ast.CommentNode:
+		fmt.Fprintf(&m.sb, "#%s", v.GetToken().Value)
+	case *ast.DirectiveNode:
+		fmt.Fprintf(&m.sb, "%%%s", v.Value.GetToken().Value)
+	case *ast.TagNode:
+		fmt.Fprintf(&m.sb, "%s%s", v.GetToken().Origin, v.Value.GetToken().Origin)
+		m.inhibitNextNewLine = true
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
 	}
@@ -96,7 +101,6 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
 	valtkn := n.Value.GetToken()
 	fmt.Fprintf(&m.sb, "*%s", valtkn.Value)
-
 
 	// TODO change a very hacky way to get the alias' inline comment because
 	// BUG alias node's comment is not parsed correctly
@@ -186,8 +190,11 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
 	m.writeInlineComment()
-	m.sb.WriteString("\n")
 
+	if !m.inhibitNextNewLine {
+	m.sb.WriteString("\n")
+	}
+	m.inhibitNextNewLine = false
 	c := n.GetComment()
 	if c != nil {
 		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)
