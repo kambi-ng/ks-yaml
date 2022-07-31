@@ -75,8 +75,52 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 		fmt.Fprintf(&m.sb, "%s]", pre)
 	case *ast.LiteralNode:
 		m.unmarshallLiteral(v, depth)
+	case *ast.InfinityNode, *ast.NanNode:
+		m.unmarshallSpecialMathNode(v, depth)
+	case *ast.AnchorNode:
+		m.unmarshallAnchor(v, depth)
+	case *ast.AliasNode:
+		m.unmarshallAliasNode(v, depth)
+	case *ast.CommentGroupNode, *ast.CommentNode:
+		fmt.Fprintf(&m.sb, "#%s", v.GetToken().Value)
+	case *ast.DirectiveNode:
+		fmt.Fprintf(&m.sb, "%%%s", v.Value.GetToken().Value)
+	case *ast.TagNode:
+		fmt.Fprintf(&m.sb, "%s ", v.GetToken().Value)
+		m.unmarshallNode(v.Value, depth)
 	default:
 		fmt.Fprintf(&m.sb, "[x](%T)%s", n, v)
+	}
+}
+
+func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
+	valtkn := n.Value.GetToken()
+	fmt.Fprintf(&m.sb, "*%s", valtkn.Value)
+	// TODO change a very hacky way to get the alias' inline comment because
+	// BUG alias node's comment is not parsed correctly
+	commtkn := valtkn.Next
+	if commtkn == nil {
+		return
+	}
+	valln := valtkn.Position.Line
+	commln := commtkn.Position.Line
+	comm := commtkn.Origin
+	if comm[0] == '#' && valln == commln {
+		ic := strings.TrimRight(comm[1:], "\n")
+		m.addInlineComment(ic)
+	}
+}
+
+func (m *unmarshaller) unmarshallAnchor(n *ast.AnchorNode, depth int) {
+	fmt.Fprintf(&m.sb, "&%s ", n.Name.GetToken().Value)
+	m.unmarshallNode(n.Value, depth)
+}
+
+func (m *unmarshaller) unmarshallSpecialMathNode(n ast.Node, depth int) {
+	m.sb.WriteString(n.GetToken().Value)
+	if n.GetComment() != nil {
+		ic := n.GetComment().GetToken().Value
+		m.addInlineComment(ic)
 	}
 }
 
@@ -142,8 +186,8 @@ func (m *unmarshaller) unmarshallObject(o *ast.MappingNode, depth int) {
 func (m *unmarshaller) unmarshallKeyValueObj(n *ast.MappingValueNode, depth int) {
 	pre := strings.Repeat(m.indentString, depth)
 	m.writeInlineComment()
-	m.sb.WriteString("\n")
 
+	m.sb.WriteString("\n")
 	c := n.GetComment()
 	if c != nil {
 		fmt.Fprintf(&m.sb, "%s#%s\n", pre, c.GetToken().Value)

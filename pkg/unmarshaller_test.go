@@ -68,6 +68,26 @@ func TestUnmarshallerSimple(t *testing.T) {
 			input:    `key: null`,
 			expected: `key: null`,
 		},
+		{
+			name:     "Simple infinity Key Value",
+			input:    "key: .inf",
+			expected: `key: .inf`,
+		},
+		{
+			name:     "Simple negative infinity Key Value",
+			input:    "key: -.inf",
+			expected: `key: -.inf`,
+		},
+		{
+			name:     "Simple nan Key Value",
+			input:    "key: .nan",
+			expected: `key: .nan`,
+		},
+		{
+			name:     "Simple TagNode Key Value",
+			input:    "key: !tag something",
+			expected: `key: !tag "something"`,
+		},
 	}
 
 	for _, tt := range tb {
@@ -207,6 +227,26 @@ key: {
  }
 }`,
 		},
+		{
+			name: "Infinity Inside of Object",
+			input: `
+key: # comment obj
+  key: .inf # comment infinity`,
+			expected: `
+key: { # comment obj
+ key: .inf # comment infinity
+}`,
+		},
+		{
+			name: "Infinity Inside of Object",
+			input: `
+key: # comment obj
+  key: .nan # comment nan`,
+			expected: `
+key: { # comment obj
+ key: .nan # comment nan
+}`,
+		},
 	}
 
 	for _, tt := range tb {
@@ -326,6 +366,16 @@ key: [
     right?", # comment
  true
 ]`,
+	 	},
+		{
+			name: "Tag inside of object",
+			input: `
+key:
+  tag: !tag "value"`,
+			expected: `
+key: {
+ tag: !tag "value"
+}`,
 		},
 	}
 
@@ -337,6 +387,55 @@ key: [
 				t.Errorf("Error: %s", err)
 				return
 			}
+			assertEqual(t, tt.expected, out)
+		})
+	}
+}
+
+func TestAnchorAndAlias(t *testing.T) {
+
+	tb := []testTable{
+		{
+			name: "Anchor",
+			input: `
+anchor: &A
+  key: value`,
+			expected: `
+anchor: &A {
+ key: "value"
+}`,
+		},
+		{
+			name: "Alias",
+			input: `
+alias: *A`,
+			expected: `
+alias: *A`,
+		},
+		{
+			name: "Anchor and alias",
+			input: `
+obj:
+   anchor: &A
+      key: value
+obj2:
+  alias: *A # comment`,
+			expected: `
+obj: {
+ anchor: &A {
+  key: "value"
+ }
+}
+obj2: {
+ alias: *A # comment
+}`,
+		},
+	}
+
+	for _, tt := range tb {
+		t.Run(tt.name, func(t *testing.T) {
+			um := newUnmarshaller(oneSpace)
+			out, _ := um.unmarshallString(tt.input)
 			assertEqual(t, tt.expected, out)
 		})
 	}
