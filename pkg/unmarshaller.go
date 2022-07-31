@@ -93,7 +93,6 @@ func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	}
 }
 
-<<<<<<< HEAD
 func (m *unmarshaller) unmarshallAliasNode(n *ast.AliasNode, depth int) {
 	valtkn := n.Value.GetToken()
 	fmt.Fprintf(&m.sb, "*%s", valtkn.Value)
@@ -125,10 +124,8 @@ func (m *unmarshaller) unmarshallSpecialMathNode(n ast.Node, depth int) {
 	}
 }
 
-=======
 // known BUG white spaces in | literal on depth > 0
 // #8 or github.com/kambi-ng/ks-yaml/issues/7#issuecomment-1181629097_
->>>>>>> master
 func (m *unmarshaller) unmarshallLiteral(n *ast.LiteralNode, depth int) {
 
 	if depth <= 1 {
