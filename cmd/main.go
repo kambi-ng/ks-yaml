@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	ksyaml "github.com/kambi-ng/ks-yaml/pkg"
+	"github.com/kambi-ng/ks-yaml"
 )
 
 type opts struct {
