@@ -83,6 +83,11 @@ func TestUnmarshallerSimple(t *testing.T) {
 			input:    "key: .nan",
 			expected: `key: .nan`,
 		},
+		{
+			name:     "Simple TagNode Key Value",
+			input:    "key: !tag something",
+			expected: `key: !tag "something"`,
+		},
 	}
 
 	for _, tt := range tb {
@@ -361,6 +366,16 @@ key: [
     right?", # comment
  true
 ]`,
+	 	},
+		{
+			name: "Tag inside of object",
+			input: `
+key:
+  tag: !tag "value"`,
+			expected: `
+key: {
+ tag: !tag "value"
+}`,
 		},
 	}
 
