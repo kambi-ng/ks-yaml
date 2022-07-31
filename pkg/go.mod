@@ -1,4 +1,4 @@
-module github.com/bukan-kambing/ks-yaml/ksyaml
+module github.com/kambi-ng/ks-yaml/ksyaml
 
 go 1.18
 

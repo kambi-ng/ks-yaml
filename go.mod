@@ -1,9 +1,9 @@
-module github.com/bukan-kambing/ks-yaml
+module github.com/kambi-ng/ks-yaml
 
 go 1.18
 
 require (
-	github.com/bukan-kambing/ks-yaml/pkg v0.0.0-00010101000000-000000000000
+	github.com/kambi-ng/ks-yaml/pkg v0.0.0-00010101000000-000000000000
 	github.com/goccy/go-yaml v1.9.5
 )
 
@@ -15,4 +15,4 @@ require (
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 )
 
-replace github.com/bukan-kambing/ks-yaml/pkg => ./pkg
+replace github.com/kambi-ng/ks-yaml/pkg => ./pkg
