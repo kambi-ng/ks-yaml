@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	ksyaml "github.com/bukan-kambing/ks-yaml/pkg"
 )
@@ -44,6 +45,12 @@ func init() {
 	flag.Parse()
 	opt.indent = *indent
 	opt.inFile = *inFile
+
+	if opt.inFile == "" {
+		fmt.Println("input file is required.")
+		flag.Usage()
+		os.Exit(1)
+	}
 	if *outFile != "" {
 		opt.outFile = *outFile
 	} else {
