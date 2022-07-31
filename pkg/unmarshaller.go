@@ -50,10 +50,6 @@ func (m *unmarshaller) unmarshallBytes(in []byte) (string, error) {
 func (m *unmarshaller) unmarshallNode(n ast.Node, depth int) {
 	pre := strings.Repeat(m.indentString, max(0, depth-1))
 
-	// TODO other nodes
-	// directive node
-	// Merge Key node
-	// Tag Node
 	switch v := n.(type) {
 	case *ast.BoolNode, *ast.FloatNode, *ast.IntegerNode, *ast.NullNode, *ast.StringNode:
 		m.unmarshallValue(v, depth)
