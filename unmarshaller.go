@@ -207,7 +207,7 @@ func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
 	vs := v.GetToken().Value
 	switch v.(type) {
 	case *ast.StringNode:
-		fmt.Fprintf(&m.sb, `"%s"`, vs)
+		fmt.Fprintf(&m.sb, `%q`, vs)
 	default:
 		m.sb.WriteString(vs)
 	}
