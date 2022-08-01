@@ -318,8 +318,7 @@ key:
     right?`,
 			expected: `
 key: {
- litral: "this is literal
-    right?" # comment
+ litral: "this is literal\nright?" # comment
 }`,
 		},
 		{
@@ -331,8 +330,7 @@ key:
    right?`,
 			expected: `
 key: [
- "this is literal
-   right?" # comment
+ "this is literal\nright?" # comment
 ]`,
 		},
 		{
@@ -346,9 +344,7 @@ key:
   bool: true`,
 			expected: `
 key: {
- litral: "this is literal
-
-    right?", # comment
+ litral: "this is literal  right?", # comment
  bool: true
 }`,
 		},
@@ -362,8 +358,7 @@ key:
   - true`,
 			expected: `
 key: [
- "this is literal
-    right?", # comment
+ "this is literal right?", # comment
  true
 ]`,
 	 	},
