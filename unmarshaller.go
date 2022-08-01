@@ -134,9 +134,12 @@ func (m *unmarshaller) unmarshallLiteral(n *ast.LiteralNode, depth int) {
 	}
 
 	origin := n.Value.GetToken().Origin
+	if depth > 0 {
+		origin = n.Value.GetToken().Value
+	}
 	lit := strings.TrimSpace(origin)
 
-	fmt.Fprintf(&m.sb, `"%s"`, lit)
+	fmt.Fprintf(&m.sb, `%q`, lit)
 	if n.GetComment() != nil {
 		c := n.GetComment().GetToken().Value
 		m.addInlineComment(c)
