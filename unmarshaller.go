@@ -124,8 +124,6 @@ func (m *unmarshaller) unmarshallSpecialMathNode(n ast.Node, depth int) {
 	}
 }
 
-// known BUG white spaces in | literal on depth > 0
-// #8 or github.com/kambi-ng/ks-yaml/issues/7#issuecomment-1181629097_
 func (m *unmarshaller) unmarshallLiteral(n *ast.LiteralNode, depth int) {
 
 	if depth <= 1 {
@@ -134,9 +132,12 @@ func (m *unmarshaller) unmarshallLiteral(n *ast.LiteralNode, depth int) {
 	}
 
 	origin := n.Value.GetToken().Origin
+	if depth > 0 {
+		origin = n.Value.GetToken().Value
+	}
 	lit := strings.TrimSpace(origin)
 
-	fmt.Fprintf(&m.sb, `"%s"`, lit)
+	fmt.Fprintf(&m.sb, `%q`, lit)
 	if n.GetComment() != nil {
 		c := n.GetComment().GetToken().Value
 		m.addInlineComment(c)
@@ -206,7 +207,7 @@ func (m *unmarshaller) unmarshallValue(v ast.Node, depth int) {
 	vs := v.GetToken().Value
 	switch v.(type) {
 	case *ast.StringNode:
-		fmt.Fprintf(&m.sb, `"%s"`, vs)
+		fmt.Fprintf(&m.sb, `%q`, vs)
 	default:
 		m.sb.WriteString(vs)
 	}
